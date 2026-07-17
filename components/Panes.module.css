@@ -63,14 +63,19 @@
 
 @media (max-width: 720px) {
   .panes {
-    padding: 10px;
-    padding-bottom: 6px;
+    padding: 0;
     scroll-snap-type: x mandatory;
-    scroll-padding-left: 10px;
+    scroll-padding-left: 0;
+    /* swipe-only: no visible scrollbar, no overscroll chaining */
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
   }
 
   .panes::-webkit-scrollbar {
     display: none;
+    width: 0;
+    height: 0;
   }
 
   .dots {

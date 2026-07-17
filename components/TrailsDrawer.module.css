@@ -54,22 +54,37 @@
   box-shadow: 0 0 0 1px var(--accent) inset;
 }
 
-.title,
-.desc {
-  display: block;
-  width: 100%;
-  border: none;
-  background: transparent;
-  font-family: inherit;
-  color: inherit;
-  outline: none;
-  padding: 0;
-  resize: none;
+.trailHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .title {
+  flex: 1;
+  min-width: 0;
   font-weight: 600;
   font-size: 14px;
+  line-height: 1.3;
+}
+
+.edit {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-radius: 8px;
+  width: 26px;
+  height: 24px;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.16s;
+}
+
+.edit:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .desc {
@@ -77,13 +92,6 @@
   font-size: 12px;
   margin-top: 3px;
   line-height: 1.45;
-}
-
-.title:focus,
-.desc:focus {
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 0 0 2px var(--accent-2);
 }
 
 .meta {

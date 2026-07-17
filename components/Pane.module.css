@@ -377,7 +377,13 @@
 
 @media (max-width: 720px) {
   .pane {
-    margin-right: 10px;
+    margin-right: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    box-shadow: none;
+    /* keep the slide-in from overflowing horizontally into a scrollable gap */
+    animation: none;
   }
 
   .head {

@@ -20,7 +20,7 @@
 
 @media (max-width: 720px) {
   :root {
-    /* fill the phone screen: viewport minus the strip padding */
-    --pane-w: calc(100vw - 20px);
+    /* fill the phone screen edge-to-edge; the gallery swipes between panes */
+    --pane-w: 100vw;
   }
 }

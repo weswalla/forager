@@ -9,8 +9,7 @@ export function TrailsDrawer({
   currentId,
   onSelect,
   onNew,
-  onRename,
-  onSetDescription,
+  onEdit,
   onSaveCollection,
   onShare,
   onDelete,
@@ -20,8 +19,7 @@ export function TrailsDrawer({
   currentId: string
   onSelect: (id: string) => void
   onNew: () => void
-  onRename: (id: string, title: string) => void
-  onSetDescription: (id: string, description: string) => void
+  onEdit: (id: string) => void
   onSaveCollection: (id: string) => void
   onShare: (id: string) => void
   onDelete: (id: string) => void
@@ -39,30 +37,36 @@ export function TrailsDrawer({
           <div
             key={t.id}
             className={`${styles.trail} ${t.id === currentId ? styles.current : ''}`}
+            role="button"
+            tabIndex={0}
             onClick={(e) => {
-              if ((e.target as HTMLElement).closest('input,textarea,button')) return
+              if ((e.target as HTMLElement).closest('button')) return
               onSelect(t.id)
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onSelect(t.id)
+              }
+            }}
           >
-            <input
-              key={`title-${t.id}-${t.title}`}
-              className={styles.title}
-              defaultValue={t.title}
-              spellCheck={false}
-              readOnly={Boolean(t.collection)}
-              aria-label="Trail title"
-              onBlur={(e) => onRename(t.id, e.target.value)}
-            />
-            <textarea
-              key={`desc-${t.id}-${t.description}`}
-              className={styles.desc}
-              defaultValue={t.description}
-              spellCheck={false}
-              rows={2}
-              readOnly={Boolean(t.collection)}
-              aria-label="Trail description"
-              onBlur={(e) => onSetDescription(t.id, e.target.value)}
-            />
+            <div className={styles.trailHead}>
+              <span className={styles.title}>{t.title}</span>
+              {!t.collection && (
+                <button
+                  className={styles.edit}
+                  title="Edit title & description"
+                  aria-label="Edit trail"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(t.id)
+                  }}
+                >
+                  ✎
+                </button>
+              )}
+            </div>
+            {t.description && <div className={styles.desc}>{t.description}</div>}
             <div className={styles.meta}>
               <span className={styles.dot} />{' '}
               {t.origin ? `from ${t.origin.author}` : plural(t.seeds.length, 'seed')}

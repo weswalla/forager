@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { Link, Profile } from '@/lib/types'
 import { useApp } from '@/lib/useApp'
 import { useAuth } from '@/lib/useAuth'
@@ -11,6 +10,7 @@ import { Panes } from '@/components/Panes'
 import { Footer } from '@/components/Footer'
 import { SignInModal } from '@/components/SignIn'
 import { SaveTrailModal } from '@/components/SaveTrailModal'
+import { EditTrailModal } from '@/components/EditTrailModal'
 import { Toast, useToast } from '@/components/ui'
 import styles from './App.module.css'
 
@@ -18,10 +18,10 @@ import styles from './App.module.css'
 export function App({ shared }: { shared?: { handleOrDid: string; recordKey: string } }) {
   const auth = useAuth()
   const app = useApp()
-  const router = useRouter()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [saveTrailId, setSaveTrailId] = useState<string | null>(null)
+  const [editTrailId, setEditTrailId] = useState<string | null>(null)
   const [savePending, setSavePending] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   // action to run once the user finishes signing in (e.g. the save they attempted)
@@ -30,7 +30,8 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
   const { trail } = app
 
   // Share link: load the collection into a session (its path is the first
-  // pane), persist, then land on home.
+  // pane), then swap the URL back to home *in place* — no navigation, so the
+  // app never remounts and the page loads exactly once.
   const [imported, setImported] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const importing = useRef(false)
@@ -38,15 +39,14 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
     if (!shared || !app.state.hydrated || importing.current) return
     importing.current = true
     app.importShared(shared.handleOrDid, shared.recordKey).then(
-      () => setImported(true),
+      () => {
+        window.history.replaceState(null, '', '/')
+        setImported(true)
+      },
       (e) => setImportError(e instanceof Error ? e.message : 'Could not load trail')
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shared?.handleOrDid, shared?.recordKey, app.state.hydrated])
-
-  useEffect(() => {
-    if (imported) router.replace('/')
-  }, [imported, router])
 
   /** Run `action` now if signed in, otherwise after the sign-in popup succeeds. */
   const withAuth = (action: (profile: Profile) => void) => {
@@ -102,6 +102,13 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
       .catch(() => show('Could not copy the share link'))
   }
 
+  const handleEditSave = (info: { title: string; description: string }) => {
+    if (!editTrailId) return
+    app.rename(editTrailId, info.title)
+    app.setDescription(editTrailId, info.description)
+    setEditTrailId(null)
+  }
+
   const handleDelete = (id: string) => {
     const t = app.state.trails.find((x) => x.id === id)
     if (!t) return
@@ -134,13 +141,15 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
           open={drawerOpen}
           trails={app.state.trails}
           currentId={app.state.currentId}
-          onSelect={app.select}
+          onSelect={(id) => {
+            app.select(id)
+            if (window.innerWidth <= 720) setDrawerOpen(false)
+          }}
           onNew={() => {
             app.newTrail()
             if (window.innerWidth <= 720) setDrawerOpen(false)
           }}
-          onRename={app.rename}
-          onSetDescription={app.setDescription}
+          onEdit={setEditTrailId}
           onSaveCollection={requestSaveTrail}
           onShare={handleShare}
           onDelete={handleDelete}
@@ -195,6 +204,12 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
         error={saveError}
         onClose={() => setSaveTrailId(null)}
         onSave={handleSaveTrail}
+      />
+      <EditTrailModal
+        key={editTrailId ?? 'none'}
+        trail={editTrailId ? (app.state.trails.find((t) => t.id === editTrailId) ?? null) : null}
+        onClose={() => setEditTrailId(null)}
+        onSave={handleEditSave}
       />
       <Toast message={message} />
     </div>
