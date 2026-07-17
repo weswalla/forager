@@ -18,7 +18,6 @@ export function Panes({
   onRemoveSeed,
   onAddSeed,
   onStart,
-  onSaveLink,
 }: {
   trail: Trail
   activeStep: number
@@ -27,7 +26,6 @@ export function Panes({
   onRemoveSeed: (i: number) => void
   onAddSeed: () => void
   onStart: () => void
-  onSaveLink: (link: Link) => void
 }) {
   const wrap = useRef<HTMLDivElement>(null)
 
@@ -56,13 +54,7 @@ export function Panes({
       )}
       {trail.started &&
         trail.path.map((link, i) => (
-          <LinkPane
-            key={`${trail.id}-${i}-${link.url}`}
-            link={link}
-            step={i + 1}
-            onOpen={onOpen}
-            onSave={() => onSaveLink(link)}
-          />
+          <LinkPane key={`${trail.id}-${i}-${link.url}`} link={link} step={i + 1} onOpen={onOpen} />
         ))}
     </div>
   )

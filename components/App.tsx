@@ -85,14 +85,6 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
     }
   }
 
-  const handleSaveLink = (link: Link) =>
-    withAuth(() => {
-      app.saveLink(link.url).then(
-        () => show(`“${link.title}” saved to your Semble library ✦`),
-        (e) => show(e instanceof Error ? e.message : 'Could not save link')
-      )
-    })
-
   const handleOpen = (link: Link) => {
     if (trail?.collection) {
       show('This trail is saved to Semble and read-only — start a new trail to keep wandering')
@@ -134,7 +126,10 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
           trails={app.state.trails}
           currentId={app.state.currentId}
           onSelect={app.select}
-          onNew={app.newTrail}
+          onNew={() => {
+            app.newTrail()
+            if (window.innerWidth <= 720) setDrawerOpen(false)
+          }}
           onRename={app.rename}
           onSetDescription={app.setDescription}
           onSaveCollection={requestSaveTrail}
@@ -157,7 +152,6 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
                 onRemoveSeed={app.removeSeed}
                 onAddSeed={app.addSeed}
                 onStart={app.start}
-                onSaveLink={handleSaveLink}
               />
               <Footer
                 trail={trail}

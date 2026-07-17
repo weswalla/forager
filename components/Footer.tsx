@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import type { Trail } from '@/lib/types'
 import { PANE_RESULTS, PANE_SEED, paneOfStep } from '@/lib/helpers'
 import { Thumb } from './ui'
@@ -23,6 +24,13 @@ export function Footer({
 }) {
   const { started, path } = trail
   const shared = Boolean(trail.origin)
+
+  // keep the newest step visible as the walk grows
+  const pathRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = pathRef.current
+    if (el) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' })
+  }, [path.length, started])
   const seeds = trail.origin ? trail.origin.links.slice(0, 3) : trail.seeds
   const originLabel = shared ? 'Trail' : 'Seeds'
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
@@ -37,7 +45,7 @@ export function Footer({
             : plural(seeds.length, 'seed') + (path.length ? ` · ${plural(path.length, 'step')}` : '')}
         </span>
       </div>
-      <div className={styles.path}>
+      <div className={styles.path} ref={pathRef}>
         {!started ? (
           <div className={styles.hint}>🌱 Plant your seeds, then press “Start wandering”.</div>
         ) : (

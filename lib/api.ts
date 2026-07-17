@@ -42,7 +42,8 @@ const mockApi: Api = {
 
   async getRelated(url) {
     await delay(jitter())
-    const { mutual, similar, connected } = splitByRel(mockRelatedFor(url))
+    // dedupe: the same link can surface under multiple relationship kinds
+    const { mutual, similar, connected } = splitByRel(dedupeByUrl(mockRelatedFor(url)))
     return interweave(mutual, similar, connected)
   },
 

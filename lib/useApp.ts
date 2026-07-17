@@ -284,9 +284,6 @@ export function useApp() {
     [state.trails]
   )
 
-  /** Add a single link to the signed-in user's Semble library. */
-  const saveLink = useCallback((url: string) => api.saveLink(url), [])
-
   return {
     state,
     trail,
@@ -294,7 +291,6 @@ export function useApp() {
     cycleSeed,
     addSeed,
     saveAsCollection,
-    saveLink,
     importShared,
     select: (id: string) => dispatch({ type: 'SELECT', id }),
     rename: (id: string, title: string) => dispatch({ type: 'RENAME', id, title }),

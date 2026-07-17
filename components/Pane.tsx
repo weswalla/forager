@@ -8,13 +8,25 @@ import { LinkCard } from './LinkCard'
 import { Thumb } from './ui'
 import styles from './Pane.module.css'
 
-type Filter = 'all' | Rel
+const ALL_RELS: Rel[] = ['mutual', 'similar', 'connected']
 
-/* ---- Filter pills — attached inside the pane header ---- */
+/** Per-pane relationship toggles: all on by default, each toggles independently. */
+function useRelFilter() {
+  const [active, setActive] = useState<Set<Rel>>(() => new Set(ALL_RELS))
+  const toggle = (r: Rel) =>
+    setActive((prev) => {
+      const next = new Set(prev)
+      if (next.has(r)) next.delete(r)
+      else next.add(r)
+      return next
+    })
+  return { active, toggle }
+}
 
-function FilterPills({ filter, onFilter }: { filter: Filter; onFilter: (f: Filter) => void }) {
-  const defs: { key: Filter; label: string; swatch: string; onClass: string }[] = [
-    { key: 'all', label: 'All', swatch: 'var(--ink)', onClass: styles.onAll },
+/* ---- Filter pills — float over the top of the pane body ---- */
+
+function FilterPills({ active, onToggle }: { active: Set<Rel>; onToggle: (r: Rel) => void }) {
+  const defs: { key: Rel; label: string; swatch: string; onClass: string }[] = [
     { key: 'mutual', label: 'Mutual', swatch: REL_META.mutual.swatch, onClass: styles.onMutual },
     { key: 'similar', label: 'Similar', swatch: REL_META.similar.swatch, onClass: styles.onSimilar },
     { key: 'connected', label: 'Connected', swatch: REL_META.connected.swatch, onClass: styles.onConnected },
@@ -24,8 +36,8 @@ function FilterPills({ filter, onFilter }: { filter: Filter; onFilter: (f: Filte
       {defs.map((d) => (
         <button
           key={d.key}
-          className={`${styles.pill} ${filter === d.key ? `${styles.on} ${d.onClass}` : ''}`}
-          onClick={() => onFilter(d.key)}
+          className={`${styles.pill} ${active.has(d.key) ? `${styles.on} ${d.onClass}` : ''}`}
+          onClick={() => onToggle(d.key)}
         >
           <span className={styles.swatch} style={{ background: d.swatch }} />
           {d.label}
@@ -48,7 +60,7 @@ function RelatedList({
   data: Related[] | null
   error: Error | null
   retry: () => void
-  filter: Filter
+  filter: Set<Rel>
   label: string
   onOpen: (link: Link) => void
 }) {
@@ -64,7 +76,7 @@ function RelatedList({
   }
   if (!data) return <div className={styles.empty}>Gathering nearby links…</div>
 
-  const items = filter === 'all' ? data : data.filter((r) => r.rel === filter)
+  const items = data.filter((r) => filter.has(r.rel))
   return (
     <>
       <div className={styles.listLabel}>{label}</div>
@@ -72,8 +84,8 @@ function RelatedList({
         <div className={styles.empty}>No links in this thread yet.</div>
       ) : (
         <div className={styles.linkList}>
-          {items.map((r) => (
-            <LinkCard key={r.url} link={r} rel={r.rel} note={r.note} onClick={() => onOpen(r)} />
+          {items.map((r, i) => (
+            <LinkCard key={`${i}-${r.url}`} link={r} rel={r.rel} note={r.note} onClick={() => onOpen(r)} />
           ))}
         </div>
       )}
@@ -184,7 +196,7 @@ export function SharedTrailPane({ origin, onOpen }: { origin: TrailOrigin; onOpe
 /* ============================ Results pane (child 1) ============================ */
 
 export function ResultsPane({ seeds, onOpen }: { seeds: Link[]; onOpen: (link: Link) => void }) {
-  const [filter, setFilter] = useState<Filter>('all')
+  const { active, toggle } = useRelFilter()
   const { data, error, retry } = useSeedResults(seeds.map((s) => s.url))
   return (
     <section className={styles.pane}>
@@ -194,10 +206,10 @@ export function ResultsPane({ seeds, onOpen }: { seeds: Link[]; onOpen: (link: L
           <SeedStack seeds={seeds} />
           <span>Where {seeds.length} seed{seeds.length === 1 ? '' : 's'} lead</span>
         </div>
-        <FilterPills filter={filter} onFilter={setFilter} />
       </div>
       <div className={styles.body}>
-        <RelatedList data={data} error={error} retry={retry} filter={filter} label="Branching out →" onOpen={onOpen} />
+        <FilterPills active={active} onToggle={toggle} />
+        <RelatedList data={data} error={error} retry={retry} filter={active} label="Branching out →" onOpen={onOpen} />
       </div>
     </section>
   )
@@ -209,30 +221,28 @@ export function LinkPane({
   link,
   step,
   onOpen,
-  onSave,
 }: {
   link: Link
   step: number
   onOpen: (link: Link) => void
-  onSave: () => void
 }) {
-  const [filter, setFilter] = useState<Filter>('all')
+  const { active, toggle } = useRelFilter()
   const { data, error, retry } = usePaneData(link.url)
   return (
     <section className={styles.pane}>
       <div className={styles.head}>
         <div className={styles.eyebrow}>◷ Step {step}</div>
-        <LinkCard link={link} variant="header" />
-        <div className={styles.heroActions}>
-          <a className={styles.heroPrimary} href={link.url} target="_blank" rel="noopener noreferrer">
-            Open ↗
-          </a>
-          <button className={styles.heroBtn} onClick={onSave}>＋ Save</button>
-        </div>
-        <FilterPills filter={filter} onFilter={setFilter} />
+        <LinkCard
+          link={link}
+          variant="header"
+          onClick={() =>
+            window.open(`https://semble.so/url?id=${encodeURIComponent(link.url)}`, '_blank', 'noopener')
+          }
+        />
       </div>
       <div className={styles.body}>
-        <RelatedList data={data} error={error} retry={retry} filter={filter} label="Where this leads →" onOpen={onOpen} />
+        <FilterPills active={active} onToggle={toggle} />
+        <RelatedList data={data} error={error} retry={retry} filter={active} label="Where this leads →" onOpen={onOpen} />
       </div>
     </section>
   )

@@ -110,10 +110,15 @@
   color: #fff;
 }
 
-/* compact header card in a walked pane */
+/* compact header card in a walked pane — clicking opens the Semble page */
 .headerCard {
-  cursor: default;
   padding: 8px;
+}
+
+.headerCard:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+  border-color: var(--accent-2);
 }
 
 .headerCard .desc {
@@ -128,12 +133,6 @@
   .headerCard .desc {
     display: none;
   }
-}
-
-.headerCard:hover {
-  transform: none;
-  box-shadow: var(--shadow-sm);
-  border-color: var(--line);
 }
 
 .heroDomain {
