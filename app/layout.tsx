@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://forager.link'),
   title: 'Forager · trail browser',
   description: OG_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    title: 'Forager',
+    statusBarStyle: 'default',
+  },
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
   openGraph: {
     type: 'website',
     siteName: 'Forager',
@@ -38,6 +46,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: '#f4ece1',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
