@@ -1,0 +1,5 @@
+- [x] compact pane header (especially on mobile, want it to take up little space, right now is too much)
+- [x] wire up to real api (`lib/api.ts` sembleApi → https://api.semble.so/xrpc, x-api-key auth; unset NEXT_PUBLIC_USE_MOCK to use it)
+- [x] when not logged in, the seed cards are pulled randomly from the global feed (recent 200 activities)
+- [x] handling trails saved to semble - for now trails that have been saved to semble become read only
+- [x] save to semble popup for naming and describing

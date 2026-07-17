@@ -1,0 +1,126 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 53, 43, 0.28);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 28px 26px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(61, 53, 43, 0.06);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: 0.16s;
+}
+
+.close:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mark {
+  align-self: center;
+}
+
+.title {
+  font-size: 22px;
+  margin: 6px 0 0;
+  font-weight: 600;
+  text-align: center;
+}
+
+.lede {
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 8px 0 14px;
+  text-align: center;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  margin: 10px 0 5px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 13px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: 0.16s;
+  resize: none;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px rgba(217, 154, 91, 0.35);
+}
+
+.error {
+  color: var(--accent);
+  font-size: 12.5px;
+  margin: 10px 0 0;
+}
+
+.submit {
+  width: 100%;
+  margin-top: 16px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--sage), #9ca87e);
+  color: #fff;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 12px;
+  border-radius: 20px;
+  transition: 0.16s;
+}
+
+.submit:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}

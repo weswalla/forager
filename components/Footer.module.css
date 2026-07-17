@@ -1,0 +1,148 @@
+.trailBar {
+  flex: 0 0 auto;
+  background: rgba(251, 246, 238, 0.85);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  padding: 9px 14px;
+  z-index: 15;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.steps {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+.path {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  align-items: center;
+}
+
+.path::-webkit-scrollbar {
+  height: 6px;
+}
+
+.path::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 20px;
+}
+
+.segment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.step {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: 0.16s;
+  position: relative;
+  max-width: 180px;
+  font: inherit;
+  color: inherit;
+}
+
+.step:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.x {
+  border: none;
+  background: transparent;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.x:hover {
+  color: var(--accent);
+}
+
+.connector {
+  color: var(--ink-faint);
+  font-size: 12px;
+}
+
+/* seed group chip — seeds shown "together" */
+.seedGroup {
+  background: linear-gradient(135deg, #f3e7d3, #efe1cd);
+  border-color: #e3d0b0;
+  padding: 6px 12px 6px 9px;
+}
+
+.seedGroup.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.seedStack {
+  display: inline-flex;
+}
+
+.stackThumb {
+  margin-right: -9px;
+  border: 2px solid #f1e4cf;
+  font-size: 12px;
+}
+
+.seedStack .stackThumb:last-child {
+  margin-right: 0;
+}
+
+.seedTitle {
+  color: #a9803f;
+}
+
+.hint {
+  color: var(--ink-faint);
+  font-size: 12.5px;
+  font-style: italic;
+  padding: 6px 2px;
+}
+
+@media (max-width: 720px) {
+  .step {
+    max-width: 150px;
+  }
+}

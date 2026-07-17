@@ -1,0 +1,134 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 53, 43, 0.28);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(61, 53, 43, 0.06);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  transition: 0.16s;
+}
+
+.close:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.keyLink {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.keyLink:hover {
+  text-decoration: underline;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 36px 32px 30px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.mark {
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 34px;
+  margin: 0;
+  letter-spacing: 0.2px;
+  font-weight: 600;
+}
+
+.lede {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  line-height: 1.5;
+  margin: 8px 0 20px;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: 0.16s;
+}
+
+.input:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px rgba(217, 154, 91, 0.35);
+}
+
+.error {
+  color: var(--accent);
+  font-size: 12.5px;
+  margin: 10px 0 0;
+}
+
+.submit {
+  width: 100%;
+  margin-top: 14px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff7ef;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 12px;
+  border-radius: 20px;
+  box-shadow: 0 4px 14px rgba(200, 115, 75, 0.3);
+  transition: 0.16s;
+}
+
+.submit:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
+}
+
+.hint {
+  color: var(--ink-faint);
+  font-size: 12px;
+  font-style: italic;
+  margin: 12px 0 0;
+}

@@ -1,0 +1,51 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}
+
+.panesWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(61, 53, 43, 0.28);
+  z-index: 19;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s;
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .scrim {
+    display: block;
+  }
+
+  .scrimShow {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

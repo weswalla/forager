@@ -1,0 +1,1 @@
+- add a pane with a search query as the top and results and bottom (only one type of results in this case)

@@ -1,0 +1,3 @@
+- once the trail is saved to semble, it can be shared
+- the link will be similar to semble collection links `{app_url}/user/{handle or did}/trail/recordKey`
+- when someone view that link, it converts it to an aturi and fetches the collection, and displays it as the seed pane (will need do add a new type of seed pane / adapt the current one that does 3 random ones)

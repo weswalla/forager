@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forage — bear marks & design system</title>
+<style>
+  :root{
+    --bg:#f4ece1; --surface:#fbf6ee; --surface-2:#f6eee2;
+    --ink:#3d352b; --ink-soft:#6f6455; --ink-faint:#a99d8b; --line:#e4d8c6;
+    --accent:#c8734b;   /* terracotta */  --accent-2:#d99a5b; /* amber */
+    --sage:#8a9a6f;     /* similar    */  --dusty:#9a8ba8;    /* connected */
+    --shadow:0 6px 22px rgba(90,70,45,.10); --radius:16px;
+    --serif:"Iowan Old Style", Palatino, Georgia, serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:var(--serif); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(rgba(120,95,60,.035) 1px, transparent 1px);
+    background-size:4px 4px;
+  }
+  .wrap{max-width:980px; margin:0 auto; padding:56px 24px 96px}
+  header.top{display:flex; align-items:center; gap:16px; margin-bottom:8px}
+  .brandmark{width:52px; height:52px; flex:none}
+  h1{font-size:34px; margin:0; letter-spacing:.2px; font-weight:600}
+  .lede{color:var(--ink-soft); margin:6px 0 0; font-size:17px; max-width:56ch}
+  .eyebrow{font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-faint); margin:56px 0 4px}
+  h2{font-size:23px; margin:2px 0 18px; font-weight:600}
+  .sub{color:var(--ink-soft); font-size:15px; margin:-10px 0 22px; max-width:62ch}
+  .rule{height:1px; background:var(--line); border:0; margin:0}
+
+  /* ---- icon gallery ---- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px}
+  .tile{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:20px 16px 14px; text-align:center;
+    box-shadow:var(--shadow); transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .tile:hover{transform:translateY(-3px); box-shadow:0 12px 30px rgba(90,70,45,.14)}
+  .tile .art{display:grid; place-items:center; height:96px; margin-bottom:10px}
+  .tile svg{width:84px; height:84px; display:block}
+  .roundel{background:var(--accent); border-radius:24px; padding:12px}
+  .roundel svg{width:72px; height:72px}
+  .tname{font-size:14px; font-weight:600; margin:0}
+  .trole{font-size:12.5px; color:var(--ink-faint); margin:2px 0 0}
+
+  /* palette-var presets for the same symbols */
+  .p-terra   { --fur:#c8734b; --inner:#b3603c; --muzzle:#fbf6ee; --nose:#3d352b; --trail:#e4d8c6; --berry:#d99a5b; --berry2:#c8734b; --leaf:#8a9a6f; }
+  .p-reverse { --fur:#fbf6ee; --inner:#d99a5b; --muzzle:#f6eee2; --nose:#3d352b; --trail:#e0b892; --berry:#d99a5b; --berry2:#f2e2c8; --leaf:#b7c39a; }
+  .p-amber   { --fur:#d99a5b; --inner:#c8734b; --muzzle:#fbf6ee; --nose:#3d352b; --trail:#e4d8c6; --berry:#c8734b; --berry2:#d99a5b; --leaf:#8a9a6f; }
+  .p-sage    { --fur:#8a9a6f; --inner:#6f7f56; --muzzle:#f4efe2; --nose:#3d352b; --trail:#e4d8c6; --berry:#c8734b; --berry2:#d99a5b; --leaf:#c8734b; }
+  .p-ink     { --fur:#3d352b; --inner:#6f6455; --muzzle:#f6eee2; --nose:#d99a5b; --trail:#c9bda8; --berry:#d99a5b; --berry2:#c8734b; --leaf:#8a9a6f; }
+
+  /* scale proof */
+  .scalerow{display:flex; align-items:flex-end; gap:26px; flex-wrap:wrap;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; box-shadow:var(--shadow)}
+  .scalerow figure{margin:0; text-align:center}
+  .scalerow figcaption{font-size:11.5px; color:var(--ink-faint); margin-top:8px}
+  .s16{width:16px;height:16px} .s24{width:24px;height:24px}
+  .s32{width:32px;height:32px} .s48{width:48px;height:48px} .s64{width:64px;height:64px}
+
+  /* ---- color tokens ---- */
+  .swatches{display:grid; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:12px}
+  .sw{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--surface)}
+  .sw .chip{height:58px}
+  .sw .meta{padding:9px 11px}
+  .sw .nm{font-size:13px; font-weight:600; margin:0}
+  .sw .hx{font-size:12px; color:var(--ink-faint); margin:1px 0 0;
+    font-family:"SFMono-Regular",ui-monospace,Menlo,monospace; letter-spacing:.02em}
+
+  /* ---- relationship pills ---- */
+  .pillbar{display:flex; gap:12px; flex-wrap:wrap}
+  .pill{display:inline-flex; align-items:center; gap:7px; border-radius:20px;
+    padding:6px 14px 6px 10px; font-size:14px; font-weight:600; border:1px solid transparent}
+  .pill .dot{width:9px; height:9px; border-radius:50%}
+  .pill.mutual   { color:#a9803f; background:#efe6d3; border-color:#e6d6b4 }
+  .pill.mutual .dot{ background:var(--accent-2) }
+  .pill.similar  { color:#5f7040; background:#e6ecdb; border-color:#d4dfc0 }
+  .pill.similar .dot{ background:var(--sage) }
+  .pill.connected{ color:#6f5f86; background:#e9e3ef; border-color:#dcd2e6 }
+  .pill.connected .dot{ background:var(--dusty) }
+  .pill .n{color:inherit; opacity:.65; font-weight:600}
+
+  /* ---- type scale ---- */
+  .type{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:8px 26px; box-shadow:var(--shadow)}
+  .type .r{display:flex; align-items:baseline; gap:20px; padding:15px 0; border-bottom:1px solid var(--line)}
+  .type .r:last-child{border-bottom:0}
+  .type .tag{flex:none; width:112px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint)}
+  .type .d1{font-size:34px; font-weight:600; line-height:1.1}
+  .type .d2{font-size:23px; font-weight:600}
+  .type .bd{font-size:17px}
+  .type .cap{font-size:13px; color:var(--ink-soft)}
+  .type .mono{font-size:12.5px; color:var(--ink-faint);
+    font-family:"SFMono-Regular",ui-monospace,Menlo,monospace}
+
+  /* ---- radii + shadow specimens ---- */
+  .specs{display:flex; gap:16px; flex-wrap:wrap}
+  .spec{background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);
+    display:grid; place-items:center; color:var(--ink-soft); font-size:13px; text-align:center;
+    width:130px; height:96px; padding:8px}
+  .r-card{border-radius:13px} .r-pane{border-radius:16px} .r-pill{border-radius:20px}
+  .spec b{display:block; color:var(--ink); font-size:14px}
+
+  /* ---- buttons ---- */
+  .btns{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  .btn{font-family:var(--serif); font-size:15px; font-weight:600; border-radius:20px;
+    padding:9px 18px; cursor:pointer; border:1px solid transparent; transition:transform .16s ease, box-shadow .16s ease}
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--accent); color:#fff7ef; box-shadow:0 4px 14px rgba(200,115,75,.3)}
+  .btn.ghost{background:transparent; color:var(--accent); border-color:#e2c4b1}
+  .btn.soft{background:var(--surface-2); color:var(--ink); border-color:var(--line)}
+  .btn .b{display:inline-block; width:18px; height:18px; vertical-align:-4px; margin-right:6px}
+
+  /* ---- in-context card ---- */
+  .stage{display:grid; grid-template-columns:1fr; gap:18px; max-width:520px}
+  .fcard{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); overflow:hidden}
+  .fhead{background:var(--surface-2); padding:14px 18px; display:flex; gap:12px; align-items:center;
+    border-bottom:1px solid var(--line)}
+  .fhead .mk{width:34px; height:34px; flex:none}
+  .fhead .src{font-size:12.5px; color:var(--ink-faint); margin:0}
+  .fhead .who{font-size:14px; font-weight:600; margin:0}
+  .fbody{padding:16px 18px 18px}
+  .fbody h3{font-size:19px; margin:0 0 6px; font-weight:600; line-height:1.25}
+  .fbody a{color:var(--ink); text-decoration:none}
+  .fnote{font-size:14.5px; color:var(--ink-soft); margin:0 0 14px}
+  .fnote .q{color:var(--accent); font-style:italic}
+  .ffoot{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .fmeta{font-size:12.5px; color:var(--ink-faint)}
+  .foragebtn{font-family:var(--serif); font-weight:600; font-size:13.5px; color:var(--accent);
+    background:transparent; border:1px solid #e2c4b1; border-radius:20px; padding:6px 12px 6px 9px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; transition:background .16s ease}
+  .foragebtn:hover{background:#f7e9df}
+  .foragebtn svg{width:16px; height:16px}
+
+  .note{font-size:14px; color:var(--ink-soft); background:var(--surface-2);
+    border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:12px; padding:13px 16px; max-width:64ch}
+  code{font-family:"SFMono-Regular",ui-monospace,Menlo,monospace; font-size:.86em;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:1px 5px}
+
+  footer{margin-top:64px; padding-top:20px; border-top:1px solid var(--line);
+    color:var(--ink-faint); font-size:13px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <svg class="brandmark p-terra" viewBox="0 0 100 100" aria-label="Forage logo">
+      <use href="#bear-peek"/>
+    </svg>
+    <div>
+      <h1>Forage</h1>
+      <p class="lede">Identity &amp; design system for a calm place to gather good links from the wild web.</p>
+    </div>
+  </header>
+
+  <!-- ============ THE MARK ============ -->
+  <p class="eyebrow">The mark</p>
+  <h2>One bear, one idea: a forager</h2>
+  <p class="sub">A bear gathers good things from the wild — the same thing the app does with links.
+    Every mark shares the same geometry (circle ears, round head, a soft cream muzzle) so the family
+    reads as one identity. The <strong>peeking forager</strong> is the primary mark: a bear rising over a trail,
+    mid-discovery.</p>
+
+  <div class="grid">
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-terra"><use href="#bear-peek"/></svg></div>
+      <p class="tname">Peeking forager</p>
+      <p class="trole">primary · app icon</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-terra"><use href="#bear-head"/></svg></div>
+      <p class="tname">Head</p>
+      <p class="trole">avatar · favicon</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-terra"><use href="#bear-forage"/></svg></div>
+      <p class="tname">Foraging</p>
+      <p class="trole">empty states · onboarding</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-terra"><use href="#bear-sit"/></svg></div>
+      <p class="tname">Sitting bear</p>
+      <p class="trole">marketing · illustration</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-terra"><use href="#bear-glyph"/></svg></div>
+      <p class="tname">Glyph</p>
+      <p class="trole">the 16px silhouette</p>
+    </div>
+  </div>
+
+  <!-- ============ TREATMENTS ============ -->
+  <p class="eyebrow">Treatments</p>
+  <h2>The same head, five ways</h2>
+  <p class="sub">The mark stays two-tone so it survives at any size. Colours come straight from the tokens
+    below — nothing new is invented.</p>
+
+  <div class="grid">
+    <div class="tile">
+      <div class="art"><span class="roundel"><svg viewBox="0 0 100 100" class="p-reverse"><use href="#bear-head"/></svg></span></div>
+      <p class="tname">Roundel</p>
+      <p class="trole">cream on terracotta</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-terra"><use href="#bear-head"/></svg></div>
+      <p class="tname">Terracotta</p>
+      <p class="trole">--accent</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-amber"><use href="#bear-head"/></svg></div>
+      <p class="tname">Amber</p>
+      <p class="trole">--accent-2</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-sage"><use href="#bear-head"/></svg></div>
+      <p class="tname">Sage</p>
+      <p class="trole">--sage · quiet contexts</p>
+    </div>
+    <div class="tile">
+      <div class="art"><svg viewBox="0 0 100 100" class="p-ink"><use href="#bear-head"/></svg></div>
+      <p class="tname">Charcoal</p>
+      <p class="trole">--ink · dark on light</p>
+    </div>
+  </div>
+
+  <!-- scale proof -->
+  <p class="eyebrow">Holds up small</p>
+  <h2>The glyph from 16 to 64</h2>
+  <div class="scalerow">
+    <figure><svg class="s16" viewBox="0 0 100 100"><use href="#bear-glyph" class="p-terra"/></svg><figcaption>16 · favicon</figcaption></figure>
+    <figure><svg class="s24 p-terra" viewBox="0 0 100 100"><use href="#bear-glyph"/></svg><figcaption>24 · tab</figcaption></figure>
+    <figure><svg class="s32 p-terra" viewBox="0 0 100 100"><use href="#bear-glyph"/></svg><figcaption>32 · nav</figcaption></figure>
+    <figure><svg class="s48 p-terra" viewBox="0 0 100 100"><use href="#bear-peek"/></svg><figcaption>48 · icon</figcaption></figure>
+    <figure><span class="roundel"><svg class="s64 p-reverse" viewBox="0 0 100 100"><use href="#bear-peek"/></svg></span><figcaption>64 · app tile</figcaption></figure>
+  </div>
+
+  <!-- ============ DESIGN SYSTEM ============ -->
+  <p class="eyebrow">Design system</p>
+  <h2>Colour</h2>
+  <p class="sub">Cream paper, warm ink, terracotta &amp; amber accents. Three relationship hues carry meaning,
+    not decoration.</p>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:var(--bg)"></div><div class="meta"><p class="nm">bg</p><p class="hx">#f4ece1</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--surface)"></div><div class="meta"><p class="nm">surface</p><p class="hx">#fbf6ee</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--surface-2)"></div><div class="meta"><p class="nm">surface-2</p><p class="hx">#f6eee2</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--ink)"></div><div class="meta"><p class="nm">ink</p><p class="hx">#3d352b</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--ink-soft)"></div><div class="meta"><p class="nm">ink-soft</p><p class="hx">#6f6455</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--line)"></div><div class="meta"><p class="nm">line</p><p class="hx">#e4d8c6</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--accent)"></div><div class="meta"><p class="nm">accent · terracotta</p><p class="hx">#c8734b</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--accent-2)"></div><div class="meta"><p class="nm">accent-2 · amber</p><p class="hx">#d99a5b</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--sage)"></div><div class="meta"><p class="nm">sage · similar</p><p class="hx">#8a9a6f</p></div></div>
+    <div class="sw"><div class="chip" style="background:var(--dusty)"></div><div class="meta"><p class="nm">dusty · connected</p><p class="hx">#9a8ba8</p></div></div>
+  </div>
+
+  <p class="eyebrow" style="margin-top:36px">Relationships</p>
+  <h2>Typed connection pills</h2>
+  <p class="sub">Each link can relate to another. The hue is the meaning — a reader learns the code once.</p>
+  <div class="pillbar">
+    <span class="pill mutual"><span class="dot"></span>mutual <span class="n">· 4</span></span>
+    <span class="pill similar"><span class="dot"></span>similar <span class="n">· 12</span></span>
+    <span class="pill connected"><span class="dot"></span>connected <span class="n">· 3</span></span>
+  </div>
+
+  <p class="eyebrow" style="margin-top:40px">Typography</p>
+  <h2>Iowan Old Style, all the way down</h2>
+  <div class="type">
+    <div class="r"><span class="tag">Display</span><span class="d1">Follow a trail</span></div>
+    <div class="r"><span class="tag">Section</span><span class="d2">Foraged this week</span></div>
+    <div class="r"><span class="tag">Body</span><span class="bd">A calm, readable serif for notes and titles — the same face you’d trust in a book.</span></div>
+    <div class="r"><span class="tag">Caption</span><span class="cap">saved 3 days ago · from cosmik.network</span></div>
+    <div class="r"><span class="tag">Data / meta</span><span class="mono">Iowan Old Style, Palatino, Georgia, serif</span></div>
+  </div>
+
+  <p class="eyebrow" style="margin-top:40px">Shape &amp; depth</p>
+  <h2>Radii and the one soft shadow</h2>
+  <div class="specs">
+    <div class="spec r-card"><span><b>13</b> cards</span></div>
+    <div class="spec r-pane"><span><b>16</b> panes</span></div>
+    <div class="spec r-pill" style="width:150px"><span><b>20</b> pills &amp; buttons</span></div>
+    <div class="spec r-pane" style="box-shadow:0 6px 22px rgba(90,70,45,.10)"><span><b>shadow</b><br>0 6px 22px<br>rgba(90,70,45,.10)</span></div>
+  </div>
+
+  <p class="eyebrow" style="margin-top:40px">Actions</p>
+  <h2>Buttons</h2>
+  <div class="btns">
+    <button class="btn primary"><svg class="b" viewBox="0 0 100 100"><use href="#bear-glyph" style="--fur:#fff7ef;--muzzle:#f6dcc9;--nose:#c8734b"/></svg>Forage this link</button>
+    <button class="btn ghost">Add a note</button>
+    <button class="btn soft">Skip</button>
+  </div>
+
+  <p class="eyebrow" style="margin-top:44px">In context</p>
+  <h2>A foraged link</h2>
+  <p class="sub">Header uses <code>--surface-2</code> so the compact card and its pills read as one unit.
+    This is the atom the whole app is built from.</p>
+
+  <div class="stage">
+    <article class="fcard">
+      <div class="fhead">
+        <svg class="mk" viewBox="0 0 100 100"><use href="#bear-head" class="p-terra"/></svg>
+        <div>
+          <p class="who">Ronen foraged this</p>
+          <p class="src">cosmik.network · essay</p>
+        </div>
+      </div>
+      <div class="fbody">
+        <h3><a href="#">From Feeds to Trails</a></h3>
+        <p class="fnote">Picks up Vannevar Bush’s memex and asks what the web would feel like if we
+          walked <span class="q">paths</span> instead of scrolling piles.</p>
+        <div class="ffoot">
+          <div class="pillbar">
+            <span class="pill mutual"><span class="dot"></span>mutual <span class="n">4</span></span>
+            <span class="pill connected"><span class="dot"></span>connected <span class="n">2</span></span>
+          </div>
+          <button class="foragebtn">
+            <svg viewBox="0 0 100 100"><use href="#bear-glyph" style="--fur:#c8734b;--muzzle:#fbf6ee;--nose:#3d352b"/></svg>
+            Forage
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <p class="note" style="margin-top:26px">
+    <strong>Motion.</strong> Panes slide in ~<code>.34s</code>; hover lift ~<code>.16s</code>.
+    Everything above already respects <code>prefers-reduced-motion</code> — try toggling it and the lift/scroll go still.
+  </p>
+
+  <footer>
+    Forage — bear marks by concept, tokens verbatim from the prototype for a clean port.
+    Every mark is a single <code>&lt;use&gt;</code> of one of five symbols, recoloured with CSS variables
+    (<code>--fur · --inner · --muzzle · --nose · --trail · --berry · --leaf</code>).
+  </footer>
+</div>
+
+<!-- ============ SYMBOL LIBRARY (edit once, reused everywhere) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <clipPath id="peekClip"><rect x="0" y="0" width="100" height="72"/></clipPath>
+  </defs>
+
+  <!-- PEEKING FORAGER (primary) -->
+  <symbol id="bear-peek" viewBox="0 0 100 100">
+    <g clip-path="url(#peekClip)">
+      <circle cx="30" cy="34" r="12" fill="var(--fur)"/>
+      <circle cx="70" cy="34" r="12" fill="var(--fur)"/>
+      <circle cx="30" cy="34" r="5.5" fill="var(--inner)"/>
+      <circle cx="70" cy="34" r="5.5" fill="var(--inner)"/>
+      <ellipse cx="50" cy="58" rx="30" ry="28" fill="var(--fur)"/>
+      <ellipse cx="50" cy="66" rx="15" ry="11" fill="var(--muzzle)"/>
+      <ellipse cx="50" cy="62" rx="6" ry="4.4" fill="var(--nose)"/>
+      <circle cx="39" cy="54" r="3" fill="var(--nose)"/>
+      <circle cx="61" cy="54" r="3" fill="var(--nose)"/>
+    </g>
+    <rect x="6" y="72" width="88" height="7" rx="3.5" fill="var(--trail)"/>
+    <ellipse cx="30" cy="72" rx="8" ry="6" fill="var(--fur)"/>
+    <ellipse cx="70" cy="72" rx="8" ry="6" fill="var(--fur)"/>
+    <path d="M84 30 q3 -7 9 -8" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <circle cx="84" cy="31" r="5" fill="var(--berry)"/>
+  </symbol>
+
+  <!-- HEAD -->
+  <symbol id="bear-head" viewBox="0 0 100 100">
+    <circle cx="27" cy="28" r="14" fill="var(--fur)"/>
+    <circle cx="73" cy="28" r="14" fill="var(--fur)"/>
+    <circle cx="27" cy="28" r="6.5" fill="var(--inner)"/>
+    <circle cx="73" cy="28" r="6.5" fill="var(--inner)"/>
+    <ellipse cx="50" cy="56" rx="34" ry="32" fill="var(--fur)"/>
+    <ellipse cx="50" cy="67" rx="18" ry="14" fill="var(--muzzle)"/>
+    <path d="M50 57c6 0 9 3.4 9 6.2 0 3.3-4 5.4-9 5.4s-9-2.1-9-5.4c0-2.8 3-6.2 9-6.2z" fill="var(--nose)"/>
+    <circle cx="37" cy="49" r="3.4" fill="var(--nose)"/>
+    <circle cx="63" cy="49" r="3.4" fill="var(--nose)"/>
+  </symbol>
+
+  <!-- FORAGING (head down toward berries) -->
+  <symbol id="bear-forage" viewBox="0 0 100 100">
+    <circle cx="28" cy="26" r="12" fill="var(--fur)"/>
+    <circle cx="72" cy="24" r="12" fill="var(--fur)"/>
+    <circle cx="28" cy="26" r="5.5" fill="var(--inner)"/>
+    <circle cx="72" cy="24" r="5.5" fill="var(--inner)"/>
+    <ellipse cx="50" cy="49" rx="30" ry="29" fill="var(--fur)"/>
+    <ellipse cx="50" cy="62" rx="16" ry="13" fill="var(--muzzle)"/>
+    <ellipse cx="50" cy="68" rx="6" ry="4.6" fill="var(--nose)"/>
+    <circle cx="38" cy="47" r="2.8" fill="var(--nose)"/>
+    <circle cx="60" cy="45" r="2.8" fill="var(--nose)"/>
+    <path d="M50 80 q-1 -6 -7 -9" stroke="var(--leaf)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <circle cx="43" cy="86" r="4.4" fill="var(--berry)"/>
+    <circle cx="54" cy="88" r="4.4" fill="var(--berry2)"/>
+    <circle cx="49" cy="91" r="4.4" fill="var(--berry)"/>
+  </symbol>
+
+  <!-- SITTING BEAR -->
+  <symbol id="bear-sit" viewBox="0 0 100 100">
+    <path d="M31 52 C20 60 18 83 30 89 L70 89 C82 83 80 60 69 52 Z" fill="var(--fur)"/>
+    <ellipse cx="35" cy="86" rx="9" ry="6.5" fill="var(--muzzle)"/>
+    <ellipse cx="65" cy="86" rx="9" ry="6.5" fill="var(--muzzle)"/>
+    <ellipse cx="50" cy="70" rx="12" ry="15" fill="var(--muzzle)" opacity=".5"/>
+    <circle cx="50" cy="34" r="20" fill="var(--fur)"/>
+    <circle cx="35" cy="18" r="9" fill="var(--fur)"/>
+    <circle cx="65" cy="18" r="9" fill="var(--fur)"/>
+    <circle cx="35" cy="18" r="4" fill="var(--inner)"/>
+    <circle cx="65" cy="18" r="4" fill="var(--inner)"/>
+    <ellipse cx="50" cy="40" rx="10" ry="8" fill="var(--muzzle)"/>
+    <ellipse cx="50" cy="37" rx="3.4" ry="2.6" fill="var(--nose)"/>
+    <circle cx="43" cy="31" r="2" fill="var(--nose)"/>
+    <circle cx="57" cy="31" r="2" fill="var(--nose)"/>
+  </symbol>
+
+  <!-- GLYPH (minimal) -->
+  <symbol id="bear-glyph" viewBox="0 0 100 100">
+    <circle cx="30" cy="34" r="12" fill="var(--fur)"/>
+    <circle cx="70" cy="34" r="12" fill="var(--fur)"/>
+    <circle cx="50" cy="54" r="30" fill="var(--fur)"/>
+    <ellipse cx="50" cy="64" rx="14" ry="11" fill="var(--muzzle)"/>
+    <ellipse cx="50" cy="60" rx="5" ry="3.8" fill="var(--nose)"/>
+    <circle cx="38" cy="50" r="3" fill="var(--nose)"/>
+    <circle cx="62" cy="50" r="3" fill="var(--nose)"/>
+  </symbol>
+</svg>
+</body>
+</html>

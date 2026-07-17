@@ -1,0 +1,26 @@
+.panes {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  padding: 16px;
+  padding-bottom: 8px;
+}
+
+.panes::-webkit-scrollbar {
+  height: 9px;
+}
+
+.panes::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 20px;
+}
+
+@media (max-width: 720px) {
+  .panes {
+    padding: 10px;
+  }
+}

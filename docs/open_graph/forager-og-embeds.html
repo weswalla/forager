@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>Forager — Open Graph embeds</title>
+<style>
+:root{--bg:#f4ece1;--surface:#fbf6ee;--surface-2:#f6eee2;--ink:#3d352b;--ink-soft:#6f6455;
+--ink-faint:#a99d8b;--line:#e4d8c6;--accent:#c8734b;--accent-2:#d99a5b;--sage:#8a9a6f;--dusty:#9a8ba8;
+--shadow:0 6px 22px rgba(90,70,45,.10);--serif:"Iowan Old Style",Palatino,Georgia,serif;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);line-height:1.5;
+background-image:radial-gradient(rgba(120,95,60,.035) 1px,transparent 1px);background-size:4px 4px}
+.wrap{max-width:980px;margin:0 auto;padding:52px 24px 96px}
+.kicker{display:inline-block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+background:#efe6d3;border:1px solid #e6d6b4;border-radius:20px;padding:4px 12px;margin-bottom:14px}
+h1{font-size:32px;margin:0 0 4px;font-weight:600}
+.lede{color:var(--ink-soft);margin:0 0 8px;font-size:17px;max-width:62ch}
+.lede .dom{color:var(--accent)}
+.eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin:54px 0 4px}
+h2{font-size:22px;margin:2px 0 6px;font-weight:600}
+.sub{color:var(--ink-soft);font-size:15px;margin:0 0 22px;max-width:66ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:30px}
+.card .art{border-bottom:1px solid var(--line)}
+.card .cap{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 18px;flex-wrap:wrap}
+.card .cap b{font-size:15px} .card .cap .role{font-size:13px;color:var(--ink-soft)}
+.card .cap .fn{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--ink-faint)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.unfurl{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--surface)}
+.ufimg{border-bottom:1px solid var(--line)} .ufbody{padding:11px 14px 14px}
+.ufdom{font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 3px}
+.uftitle{font-size:16px;font-weight:600;margin:0 0 3px;line-height:1.25}
+.ufdesc{font-size:13.5px;color:var(--ink-soft);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.copylist{list-style:none;padding:0;margin:0}
+.copylist li{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.copylist .opt{flex:none;width:26px;height:26px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center;font-size:13px;color:var(--ink-soft)}
+.copylist .txt{flex:1;font-size:15.5px}
+.copylist .cnt{flex:none;font-family:ui-monospace,Menlo,monospace;font-size:12px;padding:2px 8px;border-radius:20px}
+.cnt.ok{background:#e6ecdb;color:#5f7040} .cnt.warn{background:#efe6d3;color:#a9803f} .cnt.long{background:#e9e3ef;color:#6f5f86}
+pre{background:#332c23;color:#f4ece1;border-radius:13px;padding:18px 20px;overflow:auto;font-size:12.5px;line-height:1.7;font-family:ui-monospace,Menlo,monospace;box-shadow:var(--shadow)}
+.note{font-size:14px;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:13px 16px;max-width:68ch}
+.fields{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 22px;box-shadow:var(--shadow)}
+.fields .ftitle{font-size:15px;font-weight:600;margin:0 0 8px}
+.fields ul{margin:0 0 12px;padding-left:20px}
+.fields li{font-size:14.5px;color:var(--ink-soft);margin:5px 0}
+.fields li b{color:var(--ink)}
+.fields .fnote{font-size:13.5px;color:var(--ink-soft);margin:0;border-top:1px solid var(--line);padding-top:12px}
+.k{font-weight:700;padding:1px 7px;border-radius:20px;font-size:12.5px}
+.k.mutual{background:#efe6d3;color:#a9803f} .k.similar{background:#e6ecdb;color:#5f7040} .k.connected{background:#e9e3ef;color:#6f5f86}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.86em;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:13px}
+</style></head><body><div class="wrap">
+
+<span class="kicker">A Semble client</span>
+<h1>Forager — Open Graph embeds</h1>
+<p class="lede">Share cards for <strong>Forager</strong>, a calm client for the Semble network, at <span class="dom">forager.link</span>. Three static thumbnails plus a fourth generated per shared trail — all 1200×630 — with title/description copy and drop-in meta blocks. Cards below are live; PNGs are attached for hosting.</p>
+
+<p class="eyebrow">Thumbnail · 01</p><h2>Roundel — the safe default</h2>
+<p class="sub">Brand-first, labelled “a Semble client” so the context is immediate. Reads at any feed size. Use as your <code>og:image</code> unless a page has a stronger story.</p>
+<div class="card"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" viewBox="0 0 1200 630" font-family="'Iowan Old Style', Palatino, P052, Georgia, serif">
+<defs><clipPath id="pcA"><rect x="0" y="0" width="100" height="72"/></clipPath></defs><rect width="1200" height="630" fill="#f4ece1"/>
+<rect x="30" y="30" width="1140" height="570" rx="22" fill="none" stroke="#e4d8c6" stroke-width="2"/>
+<rect x="500" y="74" width="200" height="200" rx="50" fill="#c8734b"/>
+<g transform="translate(508,82) scale(1.84)"><g clip-path="url(#pcA)">
+<circle cx="30" cy="34" r="12" fill="#fbf6ee"/><circle cx="70" cy="34" r="12" fill="#fbf6ee"/>
+<circle cx="30" cy="34" r="5.5" fill="#d99a5b"/><circle cx="70" cy="34" r="5.5" fill="#d99a5b"/>
+<ellipse cx="50" cy="58" rx="30" ry="28" fill="#fbf6ee"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#f6eee2"/>
+<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#3d352b"/>
+<circle cx="39" cy="54" r="3" fill="#3d352b"/><circle cx="61" cy="54" r="3" fill="#3d352b"/></g>
+<rect x="6" y="72" width="88" height="7" rx="3.5" fill="#e0b892"/>
+<ellipse cx="30" cy="72" rx="8" ry="6" fill="#fbf6ee"/><ellipse cx="70" cy="72" rx="8" ry="6" fill="#fbf6ee"/>
+<path d="M84 30 q3 -7 9 -8" stroke="#b7c39a" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="84" cy="31" r="5" fill="#d99a5b"/></g>
+<text x="600" y="336" text-anchor="middle" font-size="22" letter-spacing="4" fill="#c8734b">A  SEMBLE  CLIENT</text>
+<text x="600" y="428" text-anchor="middle" font-size="104" font-weight="700" fill="#3d352b">Forager</text>
+<text x="600" y="482" text-anchor="middle" font-size="30" fill="#6f6455">Forage the links worth keeping.</text>
+<circle cx="558" cy="524" r="7" fill="#c8734b"/><circle cx="600" cy="524" r="7" fill="#8a9a6f"/><circle cx="642" cy="524" r="7" fill="#9a8ba8"/>
+</svg></div><div class="cap"><b>Roundel</b><span class="role">home · default share</span><span class="fn">forager-og-roundel.png</span></div></div>
+
+<p class="eyebrow">Thumbnail · 02</p><h2>Editorial — shows what it is</h2>
+<p class="sub">Says “Semble client” up top and shows Semble’s own typed connections (mutual · similar · connected), so the card teaches the product before the click.</p>
+<div class="card"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" viewBox="0 0 1200 630" font-family="'Iowan Old Style', Palatino, P052, Georgia, serif">
+<defs><clipPath id="pcB"><rect x="0" y="0" width="100" height="72"/></clipPath></defs><rect width="1200" height="630" fill="#fbf6ee"/>
+<rect x="0" y="0" width="452" height="630" fill="#c8734b"/>
+<g transform="translate(106,168) scale(2.4)"><g clip-path="url(#pcB)">
+<circle cx="30" cy="34" r="12" fill="#fbf6ee"/><circle cx="70" cy="34" r="12" fill="#fbf6ee"/>
+<circle cx="30" cy="34" r="5.5" fill="#d99a5b"/><circle cx="70" cy="34" r="5.5" fill="#d99a5b"/>
+<ellipse cx="50" cy="58" rx="30" ry="28" fill="#fbf6ee"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#f6eee2"/>
+<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#3d352b"/>
+<circle cx="39" cy="54" r="3" fill="#3d352b"/><circle cx="61" cy="54" r="3" fill="#3d352b"/></g>
+<rect x="6" y="72" width="88" height="7" rx="3.5" fill="#e0b892"/>
+<ellipse cx="30" cy="72" rx="8" ry="6" fill="#fbf6ee"/><ellipse cx="70" cy="72" rx="8" ry="6" fill="#fbf6ee"/>
+<path d="M84 30 q3 -7 9 -8" stroke="#b7c39a" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="84" cy="31" r="5" fill="#d99a5b"/></g>
+<text x="512" y="130" font-size="21" letter-spacing="5" fill="#a99d8b">A  SEMBLE  CLIENT</text>
+<text x="508" y="228" font-size="88" font-weight="700" fill="#3d352b">Forager</text>
+<text x="512" y="298" font-size="30" fill="#6f6455">A calm client for the Semble</text>
+<text x="512" y="338" font-size="30" fill="#6f6455">network — read, note, connect.</text>
+<text x="512" y="406" font-size="18" letter-spacing="2" fill="#a99d8b">TYPED CONNECTIONS</text>
+<rect x="512" y="424" width="148" height="44" rx="22" fill="#efe6d3"/><circle cx="537" cy="446" r="6.5" fill="#d99a5b"/><text x="553" y="454" font-size="23" font-weight="700" fill="#a9803f">mutual</text>
+<rect x="674" y="424" width="140" height="44" rx="22" fill="#e6ecdb"/><circle cx="699" cy="446" r="6.5" fill="#8a9a6f"/><text x="715" y="454" font-size="23" font-weight="700" fill="#5f7040">similar</text>
+<rect x="828" y="424" width="180" height="44" rx="22" fill="#e9e3ef"/><circle cx="853" cy="446" r="6.5" fill="#9a8ba8"/><text x="869" y="454" font-size="23" font-weight="700" fill="#6f5f86">connected</text>
+<text x="512" y="556" font-size="24" fill="#c8734b">forager.link</text>
+</svg></div><div class="cap"><b>Editorial split</b><span class="role">features · about · launch</span><span class="fn">forager-og-editorial.png</span></div></div>
+
+<p class="eyebrow">Thumbnail · 03</p><h2>Trail — the concept card</h2>
+<p class="sub">Leads with the thesis. The forager peeks over the same trail the links sit on; the footer names it a Semble client at forager.link. Best for the manifesto and blog.</p>
+<div class="card"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" viewBox="0 0 1200 630" font-family="'Iowan Old Style', Palatino, P052, Georgia, serif">
+<defs><clipPath id="pcC"><rect x="0" y="0" width="100" height="72"/></clipPath></defs><rect width="1200" height="630" fill="#f4ece1"/>
+<text x="86" y="164" font-size="76" font-weight="700" fill="#3d352b">Follow a trail,</text>
+<text x="86" y="246" font-size="76" font-weight="700" fill="#c8734b">not a feed.</text>
+<text x="90" y="312" font-size="29" fill="#6f6455">A calm Semble client for wanderers, not scrollers.</text>
+<rect x="86" y="431" width="780" height="18" rx="9" fill="#e4d8c6"/>
+<circle cx="230" cy="440" r="15" fill="#c8734b"/><circle cx="430" cy="440" r="15" fill="#d99a5b"/><circle cx="630" cy="440" r="15" fill="#8a9a6f"/>
+<g transform="translate(850,252.79999999999998) scale(2.6)"><g clip-path="url(#pcC)">
+<circle cx="30" cy="34" r="12" fill="#c8734b"/><circle cx="70" cy="34" r="12" fill="#c8734b"/>
+<circle cx="30" cy="34" r="5.5" fill="#b3603c"/><circle cx="70" cy="34" r="5.5" fill="#b3603c"/>
+<ellipse cx="50" cy="58" rx="30" ry="28" fill="#c8734b"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#fbf6ee"/>
+<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#3d352b"/>
+<circle cx="39" cy="54" r="3" fill="#3d352b"/><circle cx="61" cy="54" r="3" fill="#3d352b"/></g>
+<rect x="6" y="72" width="88" height="7" rx="3.5" fill="#e4d8c6"/>
+<ellipse cx="30" cy="72" rx="8" ry="6" fill="#c8734b"/><ellipse cx="70" cy="72" rx="8" ry="6" fill="#c8734b"/>
+<path d="M84 30 q3 -7 9 -8" stroke="#8a9a6f" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="84" cy="31" r="5" fill="#d99a5b"/></g>
+<g transform="translate(88,536) scale(0.4)"><circle cx="30" cy="34" r="12" fill="#c8734b"/><circle cx="70" cy="34" r="12" fill="#c8734b"/>
+<circle cx="50" cy="54" r="30" fill="#c8734b"/><ellipse cx="50" cy="64" rx="14" ry="11" fill="#fbf6ee"/>
+<ellipse cx="50" cy="60" rx="5" ry="3.8" fill="#3d352b"/>
+<circle cx="38" cy="50" r="3" fill="#3d352b"/><circle cx="62" cy="50" r="3" fill="#3d352b"/></g>
+<text x="140" y="574" font-size="34" font-weight="700" fill="#3d352b">Forager</text>
+<text x="274" y="574" font-size="21" fill="#a99d8b">forager.link · a Semble client</text>
+</svg></div><div class="cap"><b>Trail</b><span class="role">essays · manifesto · campaigns</span><span class="fn">forager-og-trail.png</span></div></div>
+
+<p class="eyebrow">Thumbnail · 04 · dynamic</p><h2>Shared trail — a social object</h2>
+<p class="sub">Generated per trail. The account doing the sharing leads: avatar, display name, and ATProto handle up top, then the trail title as hero, then the trail spine itself (nodes coloured by connection type). Sample values shown.</p>
+<div class="card"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" viewBox="0 0 1200 630" font-family="'Iowan Old Style', Palatino, P052, Georgia, serif">
+<defs><clipPath id="pcS"><rect x="0" y="0" width="100" height="72"/></clipPath></defs>
+<rect width="1200" height="630" fill="#f4ece1"/>
+<!-- attribution -->
+<circle cx="108" cy="112" r="44" fill="#9a8ba8"/>
+<circle cx="108" cy="112" r="44" fill="none" stroke="#00000014" stroke-width="2"/>
+<text x="108" y="126" text-anchor="middle" font-size="40" font-weight="700" fill="#fbf6ee">R</text>
+<text x="172" y="90" font-size="14" letter-spacing="3" fill="#c8734b">SHARED A TRAIL ON FORAGER</text>
+<text x="172" y="120" font-size="30" font-weight="700" fill="#3d352b">Ronen Tamari</text>
+<text x="172" y="150" font-size="21" fill="#a99d8b">@ronen.bsky.social</text>
+<line x1="64" y1="188" x2="1136" y2="188" stroke="#e4d8c6" stroke-width="2"/>
+<!-- hero: trail title -->
+<text x="64" y="286" font-size="66" font-weight="700" fill="#3d352b">From Feeds to Trails</text>
+<text x="64" y="336" font-size="26" fill="#6f6455">Vannevar Bush’s memex to a live network — 9 stops.</text>
+<!-- trail spine with nodes -->
+<rect x="64" y="478" width="878" height="16" rx="8" fill="#e4d8c6"/>
+<circle cx="150" cy="486" r="13" fill="#c8734b"/>
+<circle cx="290" cy="486" r="10" fill="#cdbfa6"/>
+<circle cx="420" cy="486" r="13" fill="#8a9a6f"/>
+<circle cx="560" cy="486" r="10" fill="#cdbfa6"/>
+<circle cx="700" cy="486" r="13" fill="#9a8ba8"/>
+<circle cx="830" cy="486" r="10" fill="#cdbfa6"/>
+<g transform="translate(930,342.0) scale(2.0)"><g clip-path="url(#pcS)">
+<circle cx="30" cy="34" r="12" fill="#c8734b"/><circle cx="70" cy="34" r="12" fill="#c8734b"/>
+<circle cx="30" cy="34" r="5.5" fill="#b3603c"/><circle cx="70" cy="34" r="5.5" fill="#b3603c"/>
+<ellipse cx="50" cy="58" rx="30" ry="28" fill="#c8734b"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#fbf6ee"/>
+<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#3d352b"/>
+<circle cx="39" cy="54" r="3" fill="#3d352b"/><circle cx="61" cy="54" r="3" fill="#3d352b"/></g>
+<rect x="6" y="72" width="88" height="7" rx="3.5" fill="#e4d8c6"/>
+<ellipse cx="30" cy="72" rx="8" ry="6" fill="#c8734b"/><ellipse cx="70" cy="72" rx="8" ry="6" fill="#c8734b"/>
+<path d="M84 30 q3 -7 9 -8" stroke="#8a9a6f" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="84" cy="31" r="5" fill="#d99a5b"/></g>
+<!-- footer brand -->
+<text x="64" y="596" font-size="26" font-weight="700" fill="#c8734b">Forager<tspan font-weight="400" font-size="21" fill="#a99d8b">  ·  a Semble client  ·  forager.link</tspan></text>
+</svg></div><div class="cap"><b>Shared trail</b><span class="role">/t/&lt;trail-id&gt; · per-trail share</span><span class="fn">forager-og-trail-shared.png</span></div></div>
+
+<div class="fields">
+  <p class="ftitle">Fields the server fills per trail</p>
+  <ul>
+    <li><b>Avatar</b> — the account’s ATProto avatar (<code>&lt;image&gt;</code>); falls back to a tinted monogram when none is set.</li>
+    <li><b>Display name</b> — e.g. <em>Ronen Tamari</em>.</li>
+    <li><b>Handle</b> — the Bluesky/ATProto handle, e.g. <em>@ronen.bsky.social</em>.</li>
+    <li><b>Trail title</b> — the hero line; single line reads best (wrap or truncate past ~26 characters at this size).</li>
+    <li><b>Subtitle / stop count</b> — a one-line summary ending in “<em>N stops</em>”.</li>
+    <li><b>Spine nodes</b> — optional: colour a few by connection type (<span class="k mutual">mutual</span> · <span class="k similar">similar</span> · <span class="k connected">connected</span>), the rest neutral.</li>
+  </ul>
+  <p class="fnote">A ready-to-fill <code>forager-og-trail-shared.template.svg</code> is attached, with <code>{{DISPLAY_NAME}}</code>, <code>{{HANDLE}}</code>, <code>{{TRAIL_TITLE}}</code>, <code>{{TRAIL_SUBTITLE}}</code>, <code>{{INITIAL}}</code> and <code>{{AVATAR_TINT}}</code> placeholders — render it to PNG on save, or on the fly behind <code>/og/t/&lt;id&gt;.png</code>.</p>
+</div>
+
+<p class="eyebrow" style="margin-top:40px">Per-trail meta</p><h2>Dynamic meta for a shared trail</h2>
+<p class="sub">What a trail page at <code>forager.link/t/&lt;id&gt;</code> emits, built from the trail and the sharer’s account.</p>
+<pre>&lt;!-- rendered per shared trail; values come from the trail + the ATProto account --&gt;
+&lt;meta property="og:type" content="article"&gt;
+&lt;meta property="og:site_name" content="Forager"&gt;
+&lt;meta property="og:url" content="https://forager.link/t/{{trail_id}}"&gt;
+&lt;meta property="og:title" content="{{trail_title}} — a trail on Forager"&gt;
+&lt;meta property="og:description" content="Curated by {{display_name}} ({{handle}}) · {{n}} stops on Semble"&gt;
+&lt;meta property="og:image" content="https://forager.link/og/t/{{trail_id}}.png"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:alt" content="{{trail_title}}, a trail shared by {{display_name}}"&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;
+&lt;meta property="article:author" content="{{handle}}"&gt;</pre>
+
+<p class="eyebrow">In a feed</p><h2>How they unfurl when shared</h2>
+<p class="sub">Roughly how a link preview renders on Slack, iMessage, or a social post — image on top, then domain, title, and a two-line description.</p>
+<div class="grid2">
+<div class="unfurl"><div class="ufimg"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" viewBox="0 0 1200 630" font-family="'Iowan Old Style', Palatino, P052, Georgia, serif">
+<defs><clipPath id="pcA"><rect x="0" y="0" width="100" height="72"/></clipPath></defs><rect width="1200" height="630" fill="#f4ece1"/>
+<rect x="30" y="30" width="1140" height="570" rx="22" fill="none" stroke="#e4d8c6" stroke-width="2"/>
+<rect x="500" y="74" width="200" height="200" rx="50" fill="#c8734b"/>
+<g transform="translate(508,82) scale(1.84)"><g clip-path="url(#pcA)">
+<circle cx="30" cy="34" r="12" fill="#fbf6ee"/><circle cx="70" cy="34" r="12" fill="#fbf6ee"/>
+<circle cx="30" cy="34" r="5.5" fill="#d99a5b"/><circle cx="70" cy="34" r="5.5" fill="#d99a5b"/>
+<ellipse cx="50" cy="58" rx="30" ry="28" fill="#fbf6ee"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#f6eee2"/>
+<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#3d352b"/>
+<circle cx="39" cy="54" r="3" fill="#3d352b"/><circle cx="61" cy="54" r="3" fill="#3d352b"/></g>
+<rect x="6" y="72" width="88" height="7" rx="3.5" fill="#e0b892"/>
+<ellipse cx="30" cy="72" rx="8" ry="6" fill="#fbf6ee"/><ellipse cx="70" cy="72" rx="8" ry="6" fill="#fbf6ee"/>
+<path d="M84 30 q3 -7 9 -8" stroke="#b7c39a" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="84" cy="31" r="5" fill="#d99a5b"/></g>
+<text x="600" y="336" text-anchor="middle" font-size="22" letter-spacing="4" fill="#c8734b">A  SEMBLE  CLIENT</text>
+<text x="600" y="428" text-anchor="middle" font-size="104" font-weight="700" fill="#3d352b">Forager</text>
+<text x="600" y="482" text-anchor="middle" font-size="30" fill="#6f6455">Forage the links worth keeping.</text>
+<circle cx="558" cy="524" r="7" fill="#c8734b"/><circle cx="600" cy="524" r="7" fill="#8a9a6f"/><circle cx="642" cy="524" r="7" fill="#9a8ba8"/>
+</svg></div>
+      <div class="ufbody"><p class="ufdom">forager.link</p><p class="uftitle">Forager — a calm client for Semble</p><p class="ufdesc">A calm client for the Semble network. Forage the links worth keeping, add notes, and follow the trails between them — no feed, just paths.</p></div></div>
+<div class="unfurl"><div class="ufimg"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" viewBox="0 0 1200 630" font-family="'Iowan Old Style', Palatino, P052, Georgia, serif">
+<defs><clipPath id="pcS"><rect x="0" y="0" width="100" height="72"/></clipPath></defs>
+<rect width="1200" height="630" fill="#f4ece1"/>
+<!-- attribution -->
+<circle cx="108" cy="112" r="44" fill="#9a8ba8"/>
+<circle cx="108" cy="112" r="44" fill="none" stroke="#00000014" stroke-width="2"/>
+<text x="108" y="126" text-anchor="middle" font-size="40" font-weight="700" fill="#fbf6ee">R</text>
+<text x="172" y="90" font-size="14" letter-spacing="3" fill="#c8734b">SHARED A TRAIL ON FORAGER</text>
+<text x="172" y="120" font-size="30" font-weight="700" fill="#3d352b">Ronen Tamari</text>
+<text x="172" y="150" font-size="21" fill="#a99d8b">@ronen.bsky.social</text>
+<line x1="64" y1="188" x2="1136" y2="188" stroke="#e4d8c6" stroke-width="2"/>
+<!-- hero: trail title -->
+<text x="64" y="286" font-size="66" font-weight="700" fill="#3d352b">From Feeds to Trails</text>
+<text x="64" y="336" font-size="26" fill="#6f6455">Vannevar Bush’s memex to a live network — 9 stops.</text>
+<!-- trail spine with nodes -->
+<rect x="64" y="478" width="878" height="16" rx="8" fill="#e4d8c6"/>
+<circle cx="150" cy="486" r="13" fill="#c8734b"/>
+<circle cx="290" cy="486" r="10" fill="#cdbfa6"/>
+<circle cx="420" cy="486" r="13" fill="#8a9a6f"/>
+<circle cx="560" cy="486" r="10" fill="#cdbfa6"/>
+<circle cx="700" cy="486" r="13" fill="#9a8ba8"/>
+<circle cx="830" cy="486" r="10" fill="#cdbfa6"/>
+<g transform="translate(930,342.0) scale(2.0)"><g clip-path="url(#pcS)">
+<circle cx="30" cy="34" r="12" fill="#c8734b"/><circle cx="70" cy="34" r="12" fill="#c8734b"/>
+<circle cx="30" cy="34" r="5.5" fill="#b3603c"/><circle cx="70" cy="34" r="5.5" fill="#b3603c"/>
+<ellipse cx="50" cy="58" rx="30" ry="28" fill="#c8734b"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#fbf6ee"/>
+<ellipse cx="50" cy="62" rx="6" ry="4.4" fill="#3d352b"/>
+<circle cx="39" cy="54" r="3" fill="#3d352b"/><circle cx="61" cy="54" r="3" fill="#3d352b"/></g>
+<rect x="6" y="72" width="88" height="7" rx="3.5" fill="#e4d8c6"/>
+<ellipse cx="30" cy="72" rx="8" ry="6" fill="#c8734b"/><ellipse cx="70" cy="72" rx="8" ry="6" fill="#c8734b"/>
+<path d="M84 30 q3 -7 9 -8" stroke="#8a9a6f" stroke-width="3" fill="none" stroke-linecap="round"/>
+<circle cx="84" cy="31" r="5" fill="#d99a5b"/></g>
+<!-- footer brand -->
+<text x="64" y="596" font-size="26" font-weight="700" fill="#c8734b">Forager<tspan font-weight="400" font-size="21" fill="#a99d8b">  ·  a Semble client  ·  forager.link</tspan></text>
+</svg></div>
+      <div class="ufbody"><p class="ufdom">forager.link</p><p class="uftitle">From Feeds to Trails — a trail on Forager</p><p class="ufdesc">Curated by Ronen Tamari (@ronen.bsky.social) · 9 stops on Semble</p></div></div>
+</div>
+
+<p class="eyebrow">og:title</p><h2>Title options</h2>
+<p class="sub">Aim for ~60 characters so nothing truncates. Green fits everywhere.</p>
+<ul class="copylist"><li><span class="opt">1</span><span class="txt">Forager — a calm client for Semble</span><span class="cnt ok">34</span></li><li><span class="opt">2</span><span class="txt">Forager — forage links across the Semble network</span><span class="cnt ok">48</span></li><li><span class="opt">3</span><span class="txt">Forager — follow a trail, not a feed</span><span class="cnt ok">36</span></li></ul>
+
+<p class="eyebrow">og:description</p><h2>Description options</h2>
+<p class="sub">~110 characters shows in full on most platforms; longer still works but may clip.</p>
+<ul class="copylist"><li><span class="opt">1</span><span class="txt">A calm client for the Semble network. Forage the links worth keeping, add notes, and follow the trails between them — no feed, just paths.</span><span class="cnt long">138</span></li><li><span class="opt">2</span><span class="txt">Read Semble the quiet way. Save links, connect them as mutual, similar, or connected, and walk the trail back anytime.</span><span class="cnt long">118</span></li><li><span class="opt">3</span><span class="txt">Bookmarking for people who’d rather wander a trail than scroll a feed — a Semble client for links, notes, and the connections between them.</span><span class="cnt long">139</span></li></ul>
+
+<p class="eyebrow">Drop-in</p><h2>Meta block</h2>
+<p class="sub">Pairs title 1 + description 1 + the roundel image. Swap the <code>og:image</code> filename per page to use a different card.</p>
+<pre>&lt;meta property="og:type" content="website"&gt;
+&lt;meta property="og:site_name" content="Forager"&gt;
+&lt;meta property="og:url" content="https://forager.link/"&gt;
+&lt;meta property="og:title" content="Forager — a calm client for Semble"&gt;
+&lt;meta property="og:description" content="A calm client for the Semble network. Forage the links worth keeping, add notes, and follow the trails between them — no feed, just paths."&gt;
+&lt;meta property="og:image" content="https://forager.link/og/forager-og-roundel.png"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:alt" content="The Forager bear peeking over a trail"&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;
+&lt;meta name="twitter:title" content="Forager — a calm client for Semble"&gt;
+&lt;meta name="twitter:description" content="A calm client for the Semble network. Forage the links worth keeping, add notes, and follow the trails between them — no feed, just paths."&gt;
+&lt;meta name="twitter:image" content="https://forager.link/og/forager-og-roundel.png"&gt;</pre>
+<p class="note" style="margin-top:18px"><strong>Two gotchas.</strong> Use an <em>absolute</em> https URL for <code>og:image</code> (scrapers can’t resolve relative paths), and add a cache-buster like <code>?v=2</code> when you change an image — Slack, Facebook and others cache hard.</p>
+
+<footer>Forager — a Semble client · forager.link. OG set renders at exactly 1200×630 (1.91:1). Type here uses your Iowan/Palatino stack; PNG exports rendered with a Palatino-metric serif.</footer>
+</div></body></html>
