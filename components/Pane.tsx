@@ -55,7 +55,6 @@ function RelatedList({
   retry,
   filter,
   exclude,
-  label,
   onOpen,
 }: {
   data: Related[] | null
@@ -63,7 +62,6 @@ function RelatedList({
   retry: () => void
   filter: Set<Rel>
   exclude: Set<string> // urls already in the trail — hidden from lists
-  label: string
   onOpen: (link: Link) => void
 }) {
   if (error) {
@@ -81,7 +79,6 @@ function RelatedList({
   const items = data.filter((r) => filter.has(r.rel) && !exclude.has(r.url))
   return (
     <>
-      <div className={styles.listLabel}>{label}</div>
       {items.length === 0 ? (
         <div className={styles.empty}>No links in this thread yet.</div>
       ) : (
@@ -287,7 +284,7 @@ export function ResultsPane({
       </div>
       <div className={styles.body}>
         <FilterPills active={active} onToggle={toggle} />
-        <RelatedList data={data} error={error} retry={retry} filter={active} exclude={exclude} label="Branching out →" onOpen={onOpen} />
+        <RelatedList data={data} error={error} retry={retry} filter={active} exclude={exclude} onOpen={onOpen} />
       </div>
     </section>
   )
@@ -322,7 +319,7 @@ export function LinkPane({
       </div>
       <div className={styles.body}>
         <FilterPills active={active} onToggle={toggle} />
-        <RelatedList data={data} error={error} retry={retry} filter={active} exclude={exclude} label="Where this leads →" onOpen={onOpen} />
+        <RelatedList data={data} error={error} retry={retry} filter={active} exclude={exclude} onOpen={onOpen} />
       </div>
     </section>
   )

@@ -2,13 +2,15 @@ import type { Metadata, Viewport } from 'next'
 import '../styles/tokens.css'
 import './globals.css'
 
-const OG_TITLE = 'Forager — a calm client for Semble'
+const OG_TITLE = 'Forager — A Semble client for meandering'
 const OG_DESCRIPTION =
-  'A calm client for the Semble network. Forage the links worth keeping, add notes, and follow the trails between them — no feed, just paths.'
+  'Forage interesting links, share what you collect, seed someone’s next trail. Replace scrolling with trail building.'
+const OG_IMAGE = '/og/forager-og-meander-paws.png'
+const OG_IMAGE_ALT = 'Forager — replace scrolling with trail building'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://forager.link'),
-  title: 'Forager · trail browser',
+  title: OG_TITLE,
   description: OG_DESCRIPTION,
   appleWebApp: {
     capable: true,
@@ -26,10 +28,10 @@ export const metadata: Metadata = {
     description: OG_DESCRIPTION,
     images: [
       {
-        url: '/og/forager-og-roundel.png',
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: 'The Forager bear peeking over a trail',
+        alt: OG_IMAGE_ALT,
       },
     ],
   },
@@ -37,7 +39,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: OG_TITLE,
     description: OG_DESCRIPTION,
-    images: ['/og/forager-og-roundel.png'],
+    images: [OG_IMAGE],
   },
 }
 

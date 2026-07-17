@@ -198,7 +198,7 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
         onSignIn={handleSignIn}
       />
       <SaveTrailModal
-        key={saveTrailId ?? 'none'}
+        key={`save-${saveTrailId ?? 'none'}`}
         trail={saveTrailId ? (app.state.trails.find((t) => t.id === saveTrailId) ?? null) : null}
         pending={savePending}
         error={saveError}
@@ -206,7 +206,7 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
         onSave={handleSaveTrail}
       />
       <EditTrailModal
-        key={editTrailId ?? 'none'}
+        key={`edit-${editTrailId ?? 'none'}`}
         trail={editTrailId ? (app.state.trails.find((t) => t.id === editTrailId) ?? null) : null}
         onClose={() => setEditTrailId(null)}
         onSave={handleEditSave}

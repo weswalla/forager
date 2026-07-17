@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { fetchTrailCollection } from '@/lib/serverApi'
 
 export const alt = 'A trail shared on Forager'
 export const size = { width: 1200, height: 630 }
@@ -6,27 +7,43 @@ export const contentType = 'image/png'
 
 const TINTS = ['#c8734b', '#d99a5b', '#8a9a6f', '#9a8ba8', '#5f8a86', '#a86f6f']
 
-function tintFor(handle: string) {
+function tintFor(seed: string) {
   let h = 0
-  for (let i = 0; i < handle.length; i++) h = (h * 31 + handle.charCodeAt(i)) | 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0
   return TINTS[Math.abs(h) % TINTS.length]
 }
 
 /**
- * Dynamic share card, following docs/open_graph/forager-og-trail-shared.template.svg.
- * Mock mode only knows the handle (collection data is client-side); the real
- * impl would fetch the collection server-side and fill the trail title +
- * "N stops" subtitle.
+ * Dynamic share card, following docs/open_graph4 CTA variant A
+ * (forager-og-trail-shared-cta1.png): attribution → trail title → a trail
+ * spine that leads the eye into a "Wander from this trail" button.
+ *
+ * The collection is fetched server-side (lib/serverApi) so the card shows the
+ * real trail title, author name, and stop count. When that fetch returns null
+ * (mock mode, private, or failure) we fall back to generic copy keyed off the
+ * handle in the URL.
+ *
+ * The button is a flex row so it sizes to its label — the reference PNG had
+ * the text overflowing a fixed-width pill and colliding with the arrow.
  */
 export default async function Image({
   params,
 }: {
   params: Promise<{ handle: string; rkey: string }>
 }) {
-  const { handle: rawHandle } = await params
+  const { handle: rawHandle, rkey } = await params
   const handle = decodeURIComponent(rawHandle)
-  const tint = tintFor(handle)
-  const initial = (handle[0] ?? 'f').toUpperCase()
+  const collection = await fetchTrailCollection(handle, rkey)
+
+  const author = collection?.author || `@${handle}`
+  const tint = tintFor(collection?.handle || handle)
+  const initial = (author.replace(/^@/, '')[0] ?? 'f').toUpperCase()
+  const stops = collection?.links.length ?? 0
+
+  const title = collection?.title || 'A foraged trail'
+  const subtitle = stops
+    ? `${stops} stop${stops === 1 ? '' : 's'}, walked link by link on Semble.`
+    : 'Walked link by link on Semble — open it to wander.'
 
   return new ImageResponse(
     (
@@ -64,40 +81,47 @@ export default async function Image({
               SHARED A TRAIL ON FORAGER
             </div>
             <div style={{ fontSize: 30, fontWeight: 700, color: '#3d352b', marginTop: 4 }}>
-              {`@${handle}`}
+              {author}
             </div>
+            {collection?.author && (
+              <div style={{ fontSize: 21, color: '#a99d8b', marginTop: 2 }}>{`@${handle}`}</div>
+            )}
           </div>
         </div>
         <div style={{ height: 2, background: '#e4d8c6', marginTop: 28 }} />
 
-        {/* hero */}
-        <div style={{ fontSize: 66, fontWeight: 700, color: '#3d352b', marginTop: 48 }}>
-          A foraged trail
+        {/* hero: trail title */}
+        <div
+          style={{
+            fontSize: title.length > 34 ? 52 : 66,
+            fontWeight: 700,
+            color: '#3d352b',
+            marginTop: 44,
+            lineHeight: 1.1,
+            display: 'flex',
+          }}
+        >
+          {title}
         </div>
-        <div style={{ fontSize: 26, color: '#6f6455', marginTop: 10 }}>
-          Walked link by link on Semble — open it to wander.
-        </div>
+        <div style={{ fontSize: 26, color: '#6f6455', marginTop: 12 }}>{subtitle}</div>
 
-        {/* trail spine with nodes + bear */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', marginTop: 'auto' }}>
+        {/* trail spine leading into the CTA button */}
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: 'auto' }}>
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               position: 'relative',
-              width: 878,
+              flex: 1,
               height: 16,
               borderRadius: 8,
               background: '#e4d8c6',
             }}
           >
             {[
-              { left: 86, color: '#c8734b', r: 13 },
-              { left: 226, color: '#cdbfa6', r: 10 },
-              { left: 356, color: '#8a9a6f', r: 13 },
-              { left: 496, color: '#cdbfa6', r: 10 },
-              { left: 636, color: tint, r: 13 },
-              { left: 766, color: '#cdbfa6', r: 10 },
+              { left: 90, color: '#c8734b', r: 13 },
+              { left: 300, color: '#8a9a6f', r: 11 },
+              { left: 500, color: tint, r: 11 },
             ].map((n, i) => (
               <div
                 key={i}
@@ -113,19 +137,35 @@ export default async function Image({
               />
             ))}
           </div>
-          <svg width={160} height={160} viewBox="0 0 100 100" style={{ marginLeft: 30 }}>
-            <circle cx={30} cy={34} r={12} fill="#c8734b" />
-            <circle cx={70} cy={34} r={12} fill="#c8734b" />
-            <circle cx={30} cy={34} r={5.5} fill="#b3603c" />
-            <circle cx={70} cy={34} r={5.5} fill="#b3603c" />
-            <circle cx={50} cy={54} r={30} fill="#c8734b" />
-            <ellipse cx={50} cy={64} rx={14} ry={11} fill="#fbf6ee" />
-            <ellipse cx={50} cy={60} rx={5} ry={3.8} fill="#3d352b" />
-            <circle cx={38} cy={50} r={3} fill="#3d352b" />
-            <circle cx={62} cy={50} r={3} fill="#3d352b" />
-            <path d="M84 30 q3 -7 9 -8" stroke="#8a9a6f" strokeWidth={3} fill="none" strokeLinecap="round" />
-            <circle cx={84} cy={31} r={5} fill="#d99a5b" />
-          </svg>
+
+          {/* CTA — flex row sizes to the label; arrow sits after the text */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 18,
+              marginLeft: -24,
+              padding: '18px 34px',
+              borderRadius: 34,
+              background: '#c8734b',
+              boxShadow: '0 6px 0 rgba(143, 76, 46, 0.28)',
+            }}
+          >
+            <div style={{ fontSize: 27, fontWeight: 700, color: '#fff7ef', whiteSpace: 'nowrap' }}>
+              Wander from this trail
+            </div>
+            <svg width={30} height={20} viewBox="0 0 30 20">
+              <line x1={2} y1={10} x2={26} y2={10} stroke="#fff7ef" strokeWidth={3.2} strokeLinecap="round" />
+              <path
+                d="M 19 3 L 27 10 L 19 17"
+                fill="none"
+                stroke="#fff7ef"
+                strokeWidth={3.2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
         </div>
 
         {/* footer brand */}
