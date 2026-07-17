@@ -167,6 +167,24 @@
   cursor: default;
 }
 
+.delete {
+  margin-top: 8px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 12px;
+  padding: 5px;
+  border-radius: 8px;
+  transition: 0.18s;
+}
+
+.delete:hover {
+  color: #a85454;
+  background: #f4e4e0;
+}
+
 .actions {
   padding: 12px;
   border-top: 1px solid var(--line);

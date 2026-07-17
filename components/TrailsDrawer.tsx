@@ -13,6 +13,7 @@ export function TrailsDrawer({
   onSetDescription,
   onSaveCollection,
   onShare,
+  onDelete,
 }: {
   open: boolean
   trails: Trail[]
@@ -23,6 +24,7 @@ export function TrailsDrawer({
   onSetDescription: (id: string, description: string) => void
   onSaveCollection: (id: string) => void
   onShare: (id: string) => void
+  onDelete: (id: string) => void
 }) {
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
@@ -90,6 +92,15 @@ export function TrailsDrawer({
                 ⇗ Share this trail
               </button>
             )}
+            <button
+              className={styles.delete}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(t.id)
+              }}
+            >
+              🗑 Delete trail
+            </button>
           </div>
         ))}
       </div>

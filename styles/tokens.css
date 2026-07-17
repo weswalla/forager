@@ -20,6 +20,7 @@
 
 @media (max-width: 720px) {
   :root {
-    --pane-w: 86vw;
+    /* fill the phone screen: viewport minus the strip padding */
+    --pane-w: calc(100vw - 20px);
   }
 }

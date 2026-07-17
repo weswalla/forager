@@ -102,6 +102,15 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
       .catch(() => show('Could not copy the share link'))
   }
 
+  const handleDelete = (id: string) => {
+    const t = app.state.trails.find((x) => x.id === id)
+    if (!t) return
+    const note = t.collection ? ' Its Semble collection stays published.' : ''
+    if (!window.confirm(`Delete “${t.title}”?${note}`)) return
+    app.deleteTrail(id)
+    show('Trail deleted')
+  }
+
   const handleReset = () => {
     if (!trail) return
     app.reset()
@@ -134,6 +143,7 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
           onSetDescription={app.setDescription}
           onSaveCollection={requestSaveTrail}
           onShare={handleShare}
+          onDelete={handleDelete}
         />
         <div
           className={`${styles.scrim} ${drawerOpen ? styles.scrimShow : ''}`}
@@ -151,7 +161,10 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
                 onCycleSeed={app.cycleSeed}
                 onRemoveSeed={app.removeSeed}
                 onAddSeed={app.addSeed}
+                onRefreshSeeds={app.refreshSeeds}
+                onQuerySeed={app.addQuerySeed}
                 onStart={app.start}
+                onFocus={app.focus}
               />
               <Footer
                 trail={trail}

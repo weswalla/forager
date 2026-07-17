@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Trail } from '@/lib/types'
 import { PANE_RESULTS, PANE_SEED, paneOfStep } from '@/lib/helpers'
 import { Thumb } from './ui'
@@ -9,7 +9,8 @@ import styles from './Footer.module.css'
 /**
  * Walked path: a grouped Seeds chip + one chip per step.
  * Chips navigate (scroll) only; × removes a step. Selecting a card elsewhere
- * appends to the end — the footer never mutates order.
+ * appends to the end — the footer never mutates order. The ▲ toggle expands
+ * the bar into a taller vertical list of the walk.
  */
 export function Footer({
   trail,
@@ -24,19 +25,20 @@ export function Footer({
 }) {
   const { started, path } = trail
   const shared = Boolean(trail.origin)
+  const [expanded, setExpanded] = useState(false)
 
   // keep the newest step visible as the walk grows
   const pathRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = pathRef.current
-    if (el) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' })
-  }, [path.length, started])
+    if (el) el.scrollTo({ left: el.scrollWidth, top: el.scrollHeight, behavior: 'smooth' })
+  }, [path.length, started, expanded])
   const seeds = trail.origin ? trail.origin.links.slice(0, 3) : trail.seeds
   const originLabel = shared ? 'Trail' : 'Seeds'
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
   return (
-    <footer className={styles.trailBar}>
+    <footer className={`${styles.trailBar} ${expanded ? styles.expanded : ''}`}>
       <div className={styles.head}>
         <span>◈ Walked path</span>
         <span className={styles.steps}>
@@ -44,6 +46,13 @@ export function Footer({
             ? 'choosing seeds'
             : plural(seeds.length, 'seed') + (path.length ? ` · ${plural(path.length, 'step')}` : '')}
         </span>
+        <button
+          className={styles.expandBtn}
+          title={expanded ? 'Collapse the path' : 'Expand the path'}
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {expanded ? '▾' : '▴'}
+        </button>
       </div>
       <div className={styles.path} ref={pathRef}>
         {!started ? (
@@ -69,7 +78,7 @@ export function Footer({
               const paneIdx = paneOfStep(i, shared)
               return (
                 <span key={`${i}-${link.url}`} className={styles.segment}>
-                  <span className={styles.connector}>›</span>
+                  <span className={styles.connector}>{expanded ? '↓' : '›'}</span>
                   <span
                     className={`${styles.step} ${paneIdx === activeStep ? styles.active : ''}`}
                     role="button"
@@ -77,7 +86,7 @@ export function Footer({
                     onClick={() => onNavigate(paneIdx)}
                     onKeyDown={(e) => { if (e.key === 'Enter') onNavigate(paneIdx) }}
                   >
-                    <Thumb url={link.url} image={link.image} size={26} radius={7} />
+                    <Thumb url={link.url} image={link.image} size={expanded ? 34 : 26} radius={7} />
                     <span className={styles.title}>{link.title}</span>
                     {!trail.collection && (
                       <button

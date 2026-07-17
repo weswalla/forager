@@ -7,7 +7,13 @@ import type {
   Trail,
   TrailCollection,
 } from "./types";
-import { dedupeByUrl, interweave, newId, weightedInterleave } from "./helpers";
+import {
+  dedupeByUrl,
+  interweave,
+  newId,
+  searchQueryOf,
+  weightedInterleave,
+} from "./helpers";
 import { getStoredAuth } from "./authStorage";
 import { MOCK_LINKS, mockRelatedFor } from "./mockData";
 
@@ -283,7 +289,22 @@ async function fetchConnected(url: string): Promise<Related[]> {
     .filter((r) => r.url !== url);
 }
 
+/** Query seeds relate through semantic search rather than link lookups. */
+async function fetchSemantic(query: string): Promise<Related[]> {
+  const { urls } = await xrpc<{
+    urls: { url: string; metadata: UrlMetadata }[];
+  }>("network.cosmik.search.semantic", {
+    params: { query, limit: RELATED_LIMIT * 2 },
+  });
+  return urls.map((u) => ({
+    ...metadataToLink(u.metadata),
+    rel: "similar" as const,
+  }));
+}
+
 async function sembleRelated(url: string): Promise<Related[]> {
+  const query = searchQueryOf(url);
+  if (query) return fetchSemantic(query).catch(() => [] as Related[]);
   const [mutual, similar, connected] = await Promise.all([
     fetchMutual(url).catch(() => [] as Related[]),
     fetchSimilar(url).catch(() => [] as Related[]),
@@ -327,6 +348,37 @@ async function getFeedPool(): Promise<Link[]> {
   return feedPool;
 }
 
+/* ---- seed pool from my library (when signed in) ---- */
+
+const LIBRARY_POOL_SIZE = 100;
+let libraryPool: { key: string; links: Link[] } | null = null;
+
+async function getSeedPool(): Promise<Link[]> {
+  const key = getStoredAuth()?.apiKey;
+  if (!key) return getFeedPool();
+  if (libraryPool?.key === key) return libraryPool.links;
+  try {
+    const { cards } = await xrpc<{ cards: UrlCard[] }>(
+      "network.cosmik.card.listMine",
+      {
+        params: {
+          limit: LIBRARY_POOL_SIZE,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        },
+      },
+    );
+    const links = dedupeByUrl(cards.map(cardToLink));
+    if (links.length) {
+      libraryPool = { key, links };
+      return links;
+    }
+  } catch {
+    /* fall back to the global feed */
+  }
+  return getFeedPool();
+}
+
 const recordKeyFromUri = (uri: string) => uri.split("/").pop() ?? uri;
 
 function pageToTrailCollection(page: CollectionPage): TrailCollection {
@@ -362,7 +414,7 @@ const sembleApi: Api = {
   },
 
   async getRandomLinks(n, excludeUrls = []) {
-    const pool = (await getFeedPool()).filter(
+    const pool = (await getSeedPool()).filter(
       (l) => !excludeUrls.includes(l.url),
     );
     const out: Link[] = [];

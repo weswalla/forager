@@ -54,6 +54,7 @@ function RelatedList({
   error,
   retry,
   filter,
+  exclude,
   label,
   onOpen,
 }: {
@@ -61,6 +62,7 @@ function RelatedList({
   error: Error | null
   retry: () => void
   filter: Set<Rel>
+  exclude: Set<string> // urls already in the trail — hidden from lists
   label: string
   onOpen: (link: Link) => void
 }) {
@@ -76,7 +78,7 @@ function RelatedList({
   }
   if (!data) return <div className={styles.empty}>Gathering nearby links…</div>
 
-  const items = data.filter((r) => filter.has(r.rel))
+  const items = data.filter((r) => filter.has(r.rel) && !exclude.has(r.url))
   return (
     <>
       <div className={styles.listLabel}>{label}</div>
@@ -105,12 +107,72 @@ function SeedStack({ seeds, size = 26 }: { seeds: Link[]; size?: number }) {
 
 /* ============================ Seed pane (child 0) ============================ */
 
+const QUERY_TOPICS = [
+  'tools for thought',
+  'agents collaborating',
+  'knowledge commons',
+  'calm technology',
+  'open protocols',
+  'sensemaking',
+]
+
+/** "What's been on your mind lately?" — free text + topic chips → a search seed. */
+function QuerySeedBox({ onPlant }: { onPlant: (query: string) => void }) {
+  const [text, setText] = useState('')
+  const [picked, setPicked] = useState<Set<string>>(() => new Set())
+
+  const togglePick = (t: string) =>
+    setPicked((prev) => {
+      const next = new Set(prev)
+      if (next.has(t)) next.delete(t)
+      else next.add(t)
+      return next
+    })
+
+  const query = [text.trim(), ...picked].filter(Boolean).join(' ')
+  const plant = () => {
+    if (!query) return
+    onPlant(query)
+    setText('')
+    setPicked(new Set())
+  }
+
+  return (
+    <div className={styles.queryBox}>
+      <div className={styles.queryLabel}>Or ask the network —</div>
+      <input
+        className={styles.queryInput}
+        placeholder="What’s been on your mind lately?"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') plant() }}
+      />
+      <div className={styles.queryTopics}>
+        {QUERY_TOPICS.map((t) => (
+          <button
+            key={t}
+            className={`${styles.topic} ${picked.has(t) ? styles.topicOn : ''}`}
+            onClick={() => togglePick(t)}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <button className={styles.plantQuery} disabled={!query} onClick={plant}>
+        🌱 Plant it as a seed
+      </button>
+    </div>
+  )
+}
+
 export function SeedPane({
   seeds,
   started,
   onCycle,
   onRemove,
   onAdd,
+  onRefreshAll,
+  onQuerySeed,
   onStart,
 }: {
   seeds: Link[]
@@ -118,6 +180,8 @@ export function SeedPane({
   onCycle: (i: number) => void
   onRemove: (i: number) => void
   onAdd: () => void
+  onRefreshAll: () => void
+  onQuerySeed: (query: string) => void
   onStart: () => void
 }) {
   return (
@@ -140,8 +204,13 @@ export function SeedPane({
               onRemove={seeds.length > SEED_MIN ? () => onRemove(i) : undefined}
             />
           ))}
-          {!started && seeds.length < SEED_MAX && (
-            <button className={styles.addSeed} onClick={onAdd}>＋ Add a seed</button>
+          {!started && (
+            <div className={styles.seedRow}>
+              {seeds.length < SEED_MAX && (
+                <button className={styles.addSeed} onClick={onAdd}>＋ Add a seed</button>
+              )}
+              <button className={styles.addSeed} onClick={onRefreshAll}>⟳ Fresh handful</button>
+            </div>
           )}
         </div>
         {started ? (
@@ -150,6 +219,7 @@ export function SeedPane({
           </div>
         ) : (
           <>
+            <QuerySeedBox onPlant={onQuerySeed} />
             <button className={styles.startWander} disabled={seeds.length < SEED_MIN} onClick={onStart}>
               Start wandering →
             </button>
@@ -195,7 +265,15 @@ export function SharedTrailPane({ origin, onOpen }: { origin: TrailOrigin; onOpe
 
 /* ============================ Results pane (child 1) ============================ */
 
-export function ResultsPane({ seeds, onOpen }: { seeds: Link[]; onOpen: (link: Link) => void }) {
+export function ResultsPane({
+  seeds,
+  exclude,
+  onOpen,
+}: {
+  seeds: Link[]
+  exclude: Set<string>
+  onOpen: (link: Link) => void
+}) {
   const { active, toggle } = useRelFilter()
   const { data, error, retry } = useSeedResults(seeds.map((s) => s.url))
   return (
@@ -209,7 +287,7 @@ export function ResultsPane({ seeds, onOpen }: { seeds: Link[]; onOpen: (link: L
       </div>
       <div className={styles.body}>
         <FilterPills active={active} onToggle={toggle} />
-        <RelatedList data={data} error={error} retry={retry} filter={active} label="Branching out →" onOpen={onOpen} />
+        <RelatedList data={data} error={error} retry={retry} filter={active} exclude={exclude} label="Branching out →" onOpen={onOpen} />
       </div>
     </section>
   )
@@ -220,10 +298,12 @@ export function ResultsPane({ seeds, onOpen }: { seeds: Link[]; onOpen: (link: L
 export function LinkPane({
   link,
   step,
+  exclude,
   onOpen,
 }: {
   link: Link
   step: number
+  exclude: Set<string>
   onOpen: (link: Link) => void
 }) {
   const { active, toggle } = useRelFilter()
@@ -242,7 +322,7 @@ export function LinkPane({
       </div>
       <div className={styles.body}>
         <FilterPills active={active} onToggle={toggle} />
-        <RelatedList data={data} error={error} retry={retry} filter={active} label="Where this leads →" onOpen={onOpen} />
+        <RelatedList data={data} error={error} retry={retry} filter={active} exclude={exclude} label="Where this leads →" onOpen={onOpen} />
       </div>
     </section>
   )

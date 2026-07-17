@@ -3,8 +3,9 @@
   background: rgba(251, 246, 238, 0.85);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--line);
-  padding: 9px 14px;
+  padding: 12px 14px;
   z-index: 15;
+  transition: 0.24s;
 }
 
 .head {
@@ -25,12 +26,70 @@
   font-size: 11px;
 }
 
+.expandBtn {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-radius: 8px;
+  width: 26px;
+  height: 22px;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 12px;
+  transition: 0.16s;
+}
+
+.expandBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .path {
   display: flex;
-  gap: 8px;
+  gap: 9px;
   overflow-x: auto;
   padding-bottom: 3px;
   align-items: center;
+}
+
+/* ---- expanded: taller bar, the walk laid out vertically ---- */
+
+.expanded .path {
+  flex-direction: column;
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 46dvh;
+  gap: 6px;
+  padding-right: 4px;
+}
+
+.expanded .segment {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.expanded .connector {
+  text-align: center;
+}
+
+.expanded .step {
+  max-width: none;
+  width: 100%;
+  padding: 9px 11px;
+}
+
+.expanded .step .title {
+  flex: 1;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.35;
+  font-size: 13px;
+}
+
+.expanded .seedGroup {
+  width: 100%;
 }
 
 .path::-webkit-scrollbar {

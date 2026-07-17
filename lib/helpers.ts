@@ -63,6 +63,31 @@ export function weightedInterleave(m: Related[], s: Related[], c: Related[]): Re
   }
 }
 
+/* ---- query seeds: a Semble card search planted as a seed link ---- */
+
+export const SEMBLE_SEARCH_BASE = 'https://semble.so/search/cards'
+
+/** Build a seed link representing a Semble card search for `query`. */
+export function searchSeedLink(query: string): Link {
+  const q = query.trim().replace(/\s+/g, ' ')
+  return {
+    url: `${SEMBLE_SEARCH_BASE}?query=${encodeURIComponent(q).replace(/%20/g, '+')}`,
+    title: `“${q}”`,
+    description: 'A question planted as a seed — nearby links come from Semble search.',
+    domain: 'semble.so',
+  }
+}
+
+/** The query of a search-seed url, or null for ordinary links. */
+export function searchQueryOf(url: string): string | null {
+  if (!url.startsWith(SEMBLE_SEARCH_BASE)) return null
+  try {
+    return new URL(url).searchParams.get('query')
+  } catch {
+    return null
+  }
+}
+
 /** Dedupe by url; the first occurrence (and its rel) wins. */
 export function dedupeByUrl<T extends Link>(links: T[]): T[] {
   const seen = new Set<string>()

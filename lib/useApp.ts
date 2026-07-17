@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import type { CollectionRef, Link, Profile, Related, Trail, TrailCollection } from './types'
 import { SEED_MAX, SEED_MIN } from './types'
-import { PANE_RESULTS, PANE_SEED, dedupeByUrl, newId, paneOfStep, today } from './helpers'
+import { PANE_RESULTS, PANE_SEED, dedupeByUrl, newId, paneOfStep, searchSeedLink, today } from './helpers'
 import { api } from './api'
 
 /* ============================ state ============================ */
@@ -24,8 +24,11 @@ type Action =
   | { type: 'RENAME'; id: string; title: string }
   | { type: 'SET_DESC'; id: string; description: string }
   | { type: 'CYCLE_SEED'; index: number; link: Link } // before start only
+  | { type: 'SET_SEEDS'; seeds: Link[] } // refresh the whole seed list at once
   | { type: 'REMOVE_SEED'; index: number } // keep ≥ 1
   | { type: 'ADD_SEED'; link: Link } // keep ≤ 3
+  | { type: 'ADD_QUERY_SEED'; link: Link } // append, or swap the last seed when full
+  | { type: 'DELETE_TRAIL'; id: string }
   | { type: 'START' } // lock seeds, focus results pane
   | { type: 'OPEN'; link: Link } // append step, focus new pane
   | { type: 'REMOVE_STEP'; index: number } // splice + re-clamp activeStep
@@ -135,6 +138,11 @@ function reducer(state: AppState, action: Action): AppState {
       }))
     }
 
+    case 'SET_SEEDS': {
+      if (!current || current.started || !action.seeds.length) return state
+      return updateCurrent(state, (t) => ({ ...t, seeds: dedupeByUrl(action.seeds) }))
+    }
+
     case 'REMOVE_SEED': {
       if (!current || current.started || current.seeds.length <= SEED_MIN) return state
       return updateCurrent(state, (t) => ({
@@ -146,6 +154,26 @@ function reducer(state: AppState, action: Action): AppState {
     case 'ADD_SEED': {
       if (!current || current.started || current.seeds.length >= SEED_MAX) return state
       return updateCurrent(state, (t) => ({ ...t, seeds: [...t.seeds, action.link] }))
+    }
+
+    case 'ADD_QUERY_SEED': {
+      if (!current || current.started) return state
+      return updateCurrent(state, (t) => {
+        const kept = t.seeds.length < SEED_MAX ? t.seeds : t.seeds.slice(0, -1)
+        return { ...t, seeds: dedupeByUrl([...kept, action.link]) }
+      })
+    }
+
+    case 'DELETE_TRAIL': {
+      const trails = state.trails.filter((t) => t.id !== action.id)
+      if (action.id !== state.currentId) return { ...state, trails }
+      const next = trails[trails.length - 1]
+      return {
+        ...state,
+        trails,
+        currentId: next?.id ?? '',
+        activeStep: next ? focusForTrail(next) : PANE_SEED,
+      }
     }
 
     case 'START': {
@@ -256,6 +284,34 @@ export function useApp() {
     [seedUrls.join('|')]
   )
 
+  /** Swap the whole seed list for a fresh draw (keeps the current count). */
+  const refreshSeeds = useCallback(
+    async () => {
+      const n = trail?.seeds.length ?? SEED_MAX
+      const seeds = await api.getRandomLinks(n, seedUrls)
+      if (seeds.length) dispatch({ type: 'SET_SEEDS', seeds })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [trail?.seeds.length, seedUrls.join('|')]
+  )
+
+  /** Plant a "what's on your mind" query as a Semble-search seed. */
+  const addQuerySeed = useCallback((query: string) => {
+    if (!query.trim()) return
+    dispatch({ type: 'ADD_QUERY_SEED', link: searchSeedLink(query) })
+  }, [])
+
+  const deleteTrail = useCallback(
+    (id: string) => {
+      dispatch({ type: 'DELETE_TRAIL', id })
+      // deleting the only trail leaves nothing to walk — plant a fresh one
+      if (state.trails.length <= 1) {
+        api.getRandomLinks(SEED_MAX).then((seeds) => dispatch({ type: 'NEW_TRAIL', seeds }))
+      }
+    },
+    [state.trails.length]
+  )
+
   /** Resolve a share link's collection and open it as the current session. */
   const importShared = useCallback(async (handleOrDid: string, recordKey: string) => {
     const collection = await api.getTrailCollection(handleOrDid, recordKey)
@@ -290,6 +346,9 @@ export function useApp() {
     newTrail,
     cycleSeed,
     addSeed,
+    refreshSeeds,
+    addQuerySeed,
+    deleteTrail,
     saveAsCollection,
     importShared,
     select: (id: string) => dispatch({ type: 'SELECT', id }),

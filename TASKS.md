@@ -3,3 +3,10 @@
 - [x] when not logged in, the seed cards are pulled randomly from the global feed (recent 200 activities)
 - [x] handling trails saved to semble - for now trails that have been saved to semble become read only
 - [x] save to semble popup for naming and describing
+- [x] filter out links already in trail from pane lists
+- [x] option to refresh entire seed list of 3 at once
+- [x] when logged in, the seed links should come from the signed in users library (randomly selected from most recent 100)
+- [x] Bigger bottom trail bar + expandable view (becomes bigger and verticals)
+- [x] option to delete trails
+- [x] Tighten up design and pane ux (fitting phone screen better) (e.g. fill up the screen and scrolling panes is more like a gallery with the floating dots to show which one on)
+- [x] first seed pane can take a text box "what's been on your mind lately?" (with some multi-select option similar to selecting some tags when first signing up to a social network) - if the user enters a query (or selects some options which get concatenated into a query) then the seed link is `https://semble.so/search/cards?query={query string with + instead of space}` (e.g.`https://semble.so/search/cards?query=how+do+agents+collaborate+on+the+same+codebase`)
