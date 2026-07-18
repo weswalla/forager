@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import type { Link, Rel, Related, TrailOrigin } from '@/lib/types'
-import { REL_META, SEED_MAX, SEED_MIN } from '@/lib/types'
+import { REL_META } from '@/lib/types'
 import { usePaneData, useSeedResults } from '@/lib/useApp'
+import { searchQueryOf } from '@/lib/helpers'
 import { LinkCard } from './LinkCard'
 import { Thumb } from './ui'
 import styles from './Pane.module.css'
@@ -102,134 +103,6 @@ function SeedStack({ seeds, size = 26 }: { seeds: Link[]; size?: number }) {
   )
 }
 
-/* ============================ Seed pane (child 0) ============================ */
-
-const QUERY_TOPICS = [
-  'tools for thought',
-  'agents collaborating',
-  'knowledge commons',
-  'calm technology',
-  'open protocols',
-  'sensemaking',
-]
-
-/** "What's been on your mind lately?" — free text + topic chips → a search seed. */
-function QuerySeedBox({ onPlant }: { onPlant: (query: string) => void }) {
-  const [text, setText] = useState('')
-  const [picked, setPicked] = useState<Set<string>>(() => new Set())
-
-  const togglePick = (t: string) =>
-    setPicked((prev) => {
-      const next = new Set(prev)
-      if (next.has(t)) next.delete(t)
-      else next.add(t)
-      return next
-    })
-
-  const query = [text.trim(), ...picked].filter(Boolean).join(' ')
-  const plant = () => {
-    if (!query) return
-    onPlant(query)
-    setText('')
-    setPicked(new Set())
-  }
-
-  return (
-    <div className={styles.queryBox}>
-      <div className={styles.queryLabel}>Or ask the network —</div>
-      <input
-        className={styles.queryInput}
-        placeholder="What’s been on your mind lately?"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') plant() }}
-      />
-      <div className={styles.queryTopics}>
-        {QUERY_TOPICS.map((t) => (
-          <button
-            key={t}
-            className={`${styles.topic} ${picked.has(t) ? styles.topicOn : ''}`}
-            onClick={() => togglePick(t)}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
-      <button className={styles.plantQuery} disabled={!query} onClick={plant}>
-        🌱 Plant it as a seed
-      </button>
-    </div>
-  )
-}
-
-export function SeedPane({
-  seeds,
-  started,
-  onCycle,
-  onRemove,
-  onAdd,
-  onRefreshAll,
-  onQuerySeed,
-  onStart,
-}: {
-  seeds: Link[]
-  started: boolean
-  onCycle: (i: number) => void
-  onRemove: (i: number) => void
-  onAdd: () => void
-  onRefreshAll: () => void
-  onQuerySeed: (query: string) => void
-  onStart: () => void
-}) {
-  return (
-    <section className={styles.pane}>
-      <div className={styles.head}>
-        <div className={styles.eyebrow}>{started ? '🌱 Seeds · locked' : '🌱 Seed the trail'}</div>
-        <div className={styles.headTitle}>
-          {started ? 'Your starting seeds' : 'Pick your seed links to begin'}
-        </div>
-      </div>
-      <div className={styles.body}>
-        <div className={styles.featured}>
-          {seeds.map((s, i) => (
-            <LinkCard
-              key={s.url}
-              link={s}
-              variant="seed"
-              locked={started}
-              onCycle={() => onCycle(i)}
-              onRemove={seeds.length > SEED_MIN ? () => onRemove(i) : undefined}
-            />
-          ))}
-          {!started && (
-            <div className={styles.seedRow}>
-              {seeds.length < SEED_MAX && (
-                <button className={styles.addSeed} onClick={onAdd}>＋ Add a seed</button>
-              )}
-              <button className={styles.addSeed} onClick={onRefreshAll}>⟳ Fresh handful</button>
-            </div>
-          )}
-        </div>
-        {started ? (
-          <div className={styles.seedNote}>
-            Seeds are locked for this trail. Start a new trail to choose different seeds.
-          </div>
-        ) : (
-          <>
-            <QuerySeedBox onPlant={onQuerySeed} />
-            <button className={styles.startWander} disabled={seeds.length < SEED_MIN} onClick={onStart}>
-              Start wandering →
-            </button>
-            <div className={styles.seedNote}>
-              Cycle (⟳) or remove seeds — keep 1 to 3. They become the roots of your walk.
-            </div>
-          </>
-        )}
-      </div>
-    </section>
-  )
-}
-
 /* ============ Shared-trail pane (child 0 for shared-origin sessions) ============ */
 
 export function SharedTrailPane({ origin, onOpen }: { origin: TrailOrigin; onOpen: (link: Link) => void }) {
@@ -273,14 +146,22 @@ export function ResultsPane({
 }) {
   const { active, toggle } = useRelFilter()
   const { data, error, retry } = useSeedResults(seeds.map((s) => s.url))
+  // a trail seeded by a single question — reflect the query in the header
+  const query = seeds.length === 1 ? searchQueryOf(seeds[0].url) : null
   return (
     <section className={styles.pane}>
       <div className={styles.head}>
-        <div className={styles.eyebrow}>◷ From your seeds</div>
-        <div className={styles.resultsTitle}>
-          <SeedStack seeds={seeds} />
-          <span>Where {seeds.length} seed{seeds.length === 1 ? '' : 's'} lead</span>
-        </div>
+        <div className={styles.eyebrow}>{query ? '◷ From your question' : '◷ From your seeds'}</div>
+        {query ? (
+          <div className={styles.resultsTitle}>
+            <span>Where “{query}” leads</span>
+          </div>
+        ) : (
+          <div className={styles.resultsTitle}>
+            <SeedStack seeds={seeds} />
+            <span>Where {seeds.length} seed{seeds.length === 1 ? '' : 's'} lead</span>
+          </div>
+        )}
       </div>
       <div className={styles.body}>
         <FilterPills active={active} onToggle={toggle} />

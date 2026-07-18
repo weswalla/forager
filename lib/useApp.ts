@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useReducer, useState } from 'react'
 import type { CollectionRef, Link, Profile, Related, Trail, TrailCollection } from './types'
 import { SEED_MAX, SEED_MIN } from './types'
-import { PANE_RESULTS, PANE_SEED, dedupeByUrl, newId, paneOfStep, searchSeedLink, today } from './helpers'
+import { PANE_ROOT, dedupeByUrl, newId, paneOfStep, searchSeedLink, today } from './helpers'
 import { api } from './api'
 
 /* ============================ state ============================ */
@@ -13,6 +13,9 @@ export interface AppState {
   currentId: string
   activeStep: number // pane child index in focus; transient, not persisted
   hydrated: boolean
+  // 'home' shows the calm landing (choose a seeding path); 'walk' shows the panes.
+  // Transient, not persisted — a stored, already-walked trail reopens in 'walk'.
+  phase: 'home' | 'walk'
 }
 
 type Action =
@@ -27,15 +30,22 @@ type Action =
   | { type: 'SET_SEEDS'; seeds: Link[] } // refresh the whole seed list at once
   | { type: 'REMOVE_SEED'; index: number } // keep ≥ 1
   | { type: 'ADD_SEED'; link: Link } // keep ≤ 3
-  | { type: 'ADD_QUERY_SEED'; link: Link } // append, or swap the last seed when full
   | { type: 'DELETE_TRAIL'; id: string }
   | { type: 'START' } // lock seeds, focus results pane
   | { type: 'OPEN'; link: Link } // append step, focus new pane
   | { type: 'REMOVE_STEP'; index: number } // splice + re-clamp activeStep
   | { type: 'FOCUS'; pane: number } // navigate only
   | { type: 'RESET' } // clear path, keep seeds
+  | { type: 'GO_HOME' } // show the landing for the current trail
+  | { type: 'ENTER_WALK' } // leave the landing, show the panes
 
-const initialState: AppState = { trails: [], currentId: '', activeStep: PANE_SEED, hydrated: false }
+const initialState: AppState = {
+  trails: [],
+  currentId: '',
+  activeStep: PANE_ROOT,
+  hydrated: false,
+  phase: 'home',
+}
 
 function makeTrail(seeds: Link[]): Trail {
   const date = today()
@@ -59,9 +69,18 @@ function updateCurrent(state: AppState, patch: (t: Trail) => Trail): AppState {
 }
 
 function focusForTrail(t: Trail): number {
-  if (!t.started) return PANE_SEED
-  if (t.path.length) return paneOfStep(t.path.length - 1, Boolean(t.origin))
-  return t.origin ? PANE_SEED : PANE_RESULTS
+  // child 0 is the root pane (results, or the shared trail); steps follow from 1
+  if (t.started && t.path.length) return paneOfStep(t.path.length - 1)
+  return PANE_ROOT
+}
+
+/**
+ * Which phase a trail reopens in. A trail the user has already stepped into
+ * (walked a path, or saved to Semble) skips the landing; anything else — fresh
+ * seeds, or a just-opened shared trail — starts on the calm home screen.
+ */
+function phaseForTrail(t: Trail): 'home' | 'walk' {
+  return t.path.length || t.collection ? 'walk' : 'home'
 }
 
 function reducer(state: AppState, action: Action): AppState {
@@ -74,21 +93,35 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         trails: action.trails,
         currentId: action.currentId,
-        activeStep: t ? focusForTrail(t) : PANE_SEED,
+        activeStep: t ? focusForTrail(t) : PANE_ROOT,
+        phase: t ? phaseForTrail(t) : 'home',
         hydrated: true,
       }
     }
 
     case 'NEW_TRAIL': {
       const t = makeTrail(action.seeds)
-      return { ...state, trails: [...state.trails, t], currentId: t.id, activeStep: PANE_SEED, hydrated: true }
+      return {
+        ...state,
+        trails: [...state.trails, t],
+        currentId: t.id,
+        activeStep: PANE_ROOT,
+        phase: 'home',
+        hydrated: true,
+      }
     }
 
     case 'IMPORT_SHARED': {
       const { collection } = action
       // already opened from this collection → just select it
       const existing = state.trails.find((t) => t.origin?.uri === collection.uri)
-      if (existing) return { ...state, currentId: existing.id, activeStep: focusForTrail(existing) }
+      if (existing)
+        return {
+          ...state,
+          currentId: existing.id,
+          activeStep: focusForTrail(existing),
+          phase: phaseForTrail(existing),
+        }
       const t: Trail = {
         ...makeTrail(dedupeByUrl(collection.links)),
         title: collection.title,
@@ -106,7 +139,8 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         trails: [...state.trails, t],
         currentId: t.id,
-        activeStep: PANE_SEED,
+        activeStep: PANE_ROOT,
+        phase: 'home',
         hydrated: true,
       }
     }
@@ -117,7 +151,7 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SELECT': {
       const t = state.trails.find((x) => x.id === action.id)
       if (!t) return state
-      return { ...state, currentId: t.id, activeStep: focusForTrail(t) }
+      return { ...state, currentId: t.id, activeStep: focusForTrail(t), phase: phaseForTrail(t) }
     }
 
     case 'RENAME':
@@ -156,14 +190,6 @@ function reducer(state: AppState, action: Action): AppState {
       return updateCurrent(state, (t) => ({ ...t, seeds: [...t.seeds, action.link] }))
     }
 
-    case 'ADD_QUERY_SEED': {
-      if (!current || current.started) return state
-      return updateCurrent(state, (t) => {
-        const kept = t.seeds.length < SEED_MAX ? t.seeds : t.seeds.slice(0, -1)
-        return { ...t, seeds: dedupeByUrl([...kept, action.link]) }
-      })
-    }
-
     case 'DELETE_TRAIL': {
       const trails = state.trails.filter((t) => t.id !== action.id)
       if (action.id !== state.currentId) return { ...state, trails }
@@ -172,7 +198,8 @@ function reducer(state: AppState, action: Action): AppState {
         ...state,
         trails,
         currentId: next?.id ?? '',
-        activeStep: next ? focusForTrail(next) : PANE_SEED,
+        activeStep: next ? focusForTrail(next) : PANE_ROOT,
+        phase: next ? phaseForTrail(next) : 'home',
       }
     }
 
@@ -180,24 +207,23 @@ function reducer(state: AppState, action: Action): AppState {
       if (!current || current.started || current.seeds.length < SEED_MIN) return state
       return {
         ...updateCurrent(state, (t) => ({ ...t, started: true })),
-        activeStep: PANE_RESULTS,
+        activeStep: PANE_ROOT,
       }
     }
 
     case 'OPEN': {
       if (!current?.started || current.collection) return state // saved trails are read-only
       const next = updateCurrent(state, (t) => ({ ...t, path: [...t.path, action.link] }))
-      return { ...next, activeStep: paneOfStep(current.path.length, Boolean(current.origin)) }
+      return { ...next, activeStep: paneOfStep(current.path.length) }
     }
 
     case 'REMOVE_STEP': {
       if (!current || current.collection) return state
-      const shared = Boolean(current.origin)
-      const removedPane = paneOfStep(action.index, shared)
+      const removedPane = paneOfStep(action.index)
       const path = current.path.filter((_, i) => i !== action.index)
       let activeStep = state.activeStep
-      if (activeStep >= paneOfStep(path.length, shared)) {
-        activeStep = Math.max(shared ? PANE_SEED : PANE_RESULTS, paneOfStep(path.length - 1, shared))
+      if (activeStep >= paneOfStep(path.length)) {
+        activeStep = Math.max(PANE_ROOT, paneOfStep(path.length - 1))
       } else if (activeStep > removedPane) {
         activeStep--
       }
@@ -211,8 +237,16 @@ function reducer(state: AppState, action: Action): AppState {
       if (!current || current.collection) return state
       return {
         ...updateCurrent(state, (t) => ({ ...t, path: [] })),
-        activeStep: current.started && !current.origin ? PANE_RESULTS : PANE_SEED,
+        activeStep: PANE_ROOT,
       }
+    }
+
+    case 'GO_HOME':
+      return { ...state, phase: 'home' }
+
+    case 'ENTER_WALK': {
+      if (!current) return state
+      return { ...state, phase: 'walk', activeStep: focusForTrail(current) }
     }
   }
 }
@@ -295,11 +329,45 @@ export function useApp() {
     [trail?.seeds.length, seedUrls.join('|')]
   )
 
-  /** Plant a "what's on your mind" query as a Semble-search seed. */
-  const addQuerySeed = useCallback((query: string) => {
-    if (!query.trim()) return
-    dispatch({ type: 'ADD_QUERY_SEED', link: searchSeedLink(query) })
+  /**
+   * From the home landing: plant a question and begin walking. The query is the
+   * sole seed — no other links — so the results pane reflects just the question.
+   * Reuses the fresh landing trail (replacing its seeds with the query); a
+   * shared trail is already started/locked, so it diverges into a new trail.
+   */
+  const seedWithQuery = useCallback(
+    (query: string) => {
+      if (!query.trim()) return
+      const seed = searchSeedLink(query)
+      if (trail && !trail.origin && !trail.started) {
+        dispatch({ type: 'SET_SEEDS', seeds: [seed] })
+      } else {
+        dispatch({ type: 'NEW_TRAIL', seeds: [seed] })
+      }
+      dispatch({ type: 'START' }) // lock the seed, open the results pane
+      dispatch({ type: 'ENTER_WALK' })
+    },
+    [trail?.origin, trail?.started, trail?.id]
+  )
+
+  /** Draw a fresh handful of random seeds onto the current trail (no walk yet). */
+  const drawRandom = useCallback(
+    async () => {
+      const seeds = await api.getRandomLinks(SEED_MAX, seedUrls)
+      if (seeds.length) dispatch({ type: 'SET_SEEDS', seeds })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [seedUrls.join('|')]
+  )
+
+  /** Lock the current seeds and enter the walk (from the random-seeds view). */
+  const startWalk = useCallback(() => {
+    dispatch({ type: 'START' })
+    dispatch({ type: 'ENTER_WALK' })
   }, [])
+
+  const goHome = useCallback(() => dispatch({ type: 'GO_HOME' }), [])
+  const enterWalk = useCallback(() => dispatch({ type: 'ENTER_WALK' }), [])
 
   const deleteTrail = useCallback(
     (id: string) => {
@@ -347,7 +415,11 @@ export function useApp() {
     cycleSeed,
     addSeed,
     refreshSeeds,
-    addQuerySeed,
+    seedWithQuery,
+    drawRandom,
+    startWalk,
+    goHome,
+    enterWalk,
     deleteTrail,
     saveAsCollection,
     importShared,

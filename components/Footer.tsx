@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Trail } from '@/lib/types'
-import { PANE_RESULTS, PANE_SEED, paneOfStep } from '@/lib/helpers'
+import { PANE_ROOT, paneOfStep, searchQueryOf } from '@/lib/helpers'
 import { Thumb } from './ui'
 import styles from './Footer.module.css'
 
@@ -34,7 +34,9 @@ export function Footer({
     if (el) el.scrollTo({ left: el.scrollWidth, top: el.scrollHeight, behavior: 'smooth' })
   }, [path.length, started, expanded])
   const seeds = trail.origin ? trail.origin.links.slice(0, 3) : trail.seeds
-  const originLabel = shared ? 'Trail' : 'Seeds'
+  // a trail seeded by a single question is labelled by the question, not thumbs
+  const query = !shared && seeds.length === 1 ? searchQueryOf(seeds[0].url) : null
+  const originLabel = shared ? 'Trail' : query ? 'Question' : 'Seeds'
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
 
   return (
@@ -44,7 +46,8 @@ export function Footer({
         <span className={styles.steps}>
           {!started
             ? 'choosing seeds'
-            : plural(seeds.length, 'seed') + (path.length ? ` · ${plural(path.length, 'step')}` : '')}
+            : (query ? 'a question' : plural(seeds.length, 'seed')) +
+              (path.length ? ` · ${plural(path.length, 'step')}` : '')}
         </span>
         <button
           className={styles.expandBtn}
@@ -61,21 +64,25 @@ export function Footer({
           <>
             <button
               className={`${styles.step} ${styles.seedGroup} ${
-                activeStep === PANE_SEED || (!shared && activeStep === PANE_RESULTS)
-                  ? styles.active
-                  : ''
+                activeStep === PANE_ROOT ? styles.active : ''
               }`}
-              onClick={() => onNavigate(PANE_SEED)}
+              onClick={() => onNavigate(PANE_ROOT)}
             >
-              <span className={styles.seedStack}>
-                {seeds.map((s) => (
-                  <Thumb key={s.url} url={s.url} image={s.image} size={24} radius={7} className={styles.stackThumb} />
-                ))}
+              {query ? (
+                <span className={styles.seedStack}>🔎</span>
+              ) : (
+                <span className={styles.seedStack}>
+                  {seeds.map((s) => (
+                    <Thumb key={s.url} url={s.url} image={s.image} size={24} radius={7} className={styles.stackThumb} />
+                  ))}
+                </span>
+              )}
+              <span className={`${styles.title} ${styles.seedTitle}`}>
+                {query ? `“${query}”` : originLabel}
               </span>
-              <span className={`${styles.title} ${styles.seedTitle}`}>{originLabel}</span>
             </button>
             {path.map((link, i) => {
-              const paneIdx = paneOfStep(i, shared)
+              const paneIdx = paneOfStep(i)
               return (
                 <span key={`${i}-${link.url}`} className={styles.segment}>
                   <span className={styles.connector}>{expanded ? '↓' : '›'}</span>

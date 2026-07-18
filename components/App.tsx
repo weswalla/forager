@@ -6,6 +6,7 @@ import { useApp } from '@/lib/useApp'
 import { useAuth } from '@/lib/useAuth'
 import { TopBar } from '@/components/TopBar'
 import { TrailsDrawer } from '@/components/TrailsDrawer'
+import { Home } from '@/components/Home'
 import { Panes } from '@/components/Panes'
 import { Footer } from '@/components/Footer'
 import { SignInModal } from '@/components/SignIn'
@@ -118,6 +119,16 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
     show('Trail deleted')
   }
 
+  // "Home": if the current trail is fresh (nothing walked, not saved) just show
+  // its landing again; otherwise start a new trail so the walk isn't disturbed.
+  const handleHome = () => {
+    if (trail && !trail.path.length && !trail.collection) {
+      app.goHome()
+    } else {
+      app.newTrail()
+    }
+  }
+
   const handleReset = () => {
     if (!trail) return
     app.reset()
@@ -132,6 +143,7 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
         drawerOpen={drawerOpen}
         profile={auth.profile}
         onToggleDrawer={() => setDrawerOpen((o) => !o)}
+        onHome={handleHome}
         onReset={handleReset}
         onSignIn={() => setAuthOpen(true)}
         onSignOut={auth.signOut}
@@ -161,18 +173,25 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
         <div className={styles.panesWrap}>
           {viewingShared ? (
             <div className={styles.loading}>{importError ?? 'Finding the trail…'}</div>
+          ) : trail && app.state.phase === 'home' ? (
+            <Home
+              origin={trail.origin}
+              seeds={trail.seeds}
+              onSeedQuery={app.seedWithQuery}
+              onDrawRandom={app.drawRandom}
+              onCycleSeed={app.cycleSeed}
+              onRemoveSeed={app.removeSeed}
+              onAddSeed={app.addSeed}
+              onRefreshSeeds={app.refreshSeeds}
+              onStartWalk={app.startWalk}
+              onWalkShared={app.enterWalk}
+            />
           ) : trail ? (
             <>
               <Panes
                 trail={trail}
                 activeStep={app.state.activeStep}
                 onOpen={handleOpen}
-                onCycleSeed={app.cycleSeed}
-                onRemoveSeed={app.removeSeed}
-                onAddSeed={app.addSeed}
-                onRefreshSeeds={app.refreshSeeds}
-                onQuerySeed={app.addQuerySeed}
-                onStart={app.start}
                 onFocus={app.focus}
               />
               <Footer

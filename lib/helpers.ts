@@ -1,13 +1,13 @@
 import type { Link, Related } from './types'
 
 /**
- * path index -> pane child index. Normal trails: 0 = seed pane, 1 = results
- * pane, steps from 2. Shared-origin trails have no results pane: 0 = the
- * shared trail, steps from 1.
+ * path index -> pane child index. Seed selection happens on the home page, so
+ * the walk has no seed pane: child 0 is the "root" (the results pane for an
+ * ordinary trail, or the shared-trail pane for a shared one) and walked steps
+ * follow from 1.
  */
-export const PANE_SEED = 0
-export const PANE_RESULTS = 1
-export const paneOfStep = (i: number, sharedOrigin = false) => i + (sharedOrigin ? 1 : 2)
+export const PANE_ROOT = 0
+export const paneOfStep = (i: number) => i + 1
 
 export function newId(prefix = 't'): string {
   return prefix + Math.random().toString(36).slice(2, 10)

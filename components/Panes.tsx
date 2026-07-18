@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Link, Trail } from '@/lib/types'
-import { LinkPane, ResultsPane, SeedPane, SharedTrailPane } from './Pane'
+import { LinkPane, ResultsPane, SharedTrailPane } from './Pane'
 import styles from './Panes.module.css'
 
 /**
- * Ordered pane strip. Child indices are the navigation model:
- * 0 = seed pane, 1 = results pane, i+2 = walked pane for path[i].
+ * Ordered pane strip. Seeding happens on the home page, so the walk has no
+ * seed pane: child 0 is the root (the results pane, or the shared-trail pane)
+ * and walked panes follow from 1 (path[i] -> child i+1).
  * Owns horizontal scroll; focuses activeStep whenever it changes.
  * On phones the strip is a snap gallery with floating position dots.
  */
@@ -15,23 +16,11 @@ export function Panes({
   trail,
   activeStep,
   onOpen,
-  onCycleSeed,
-  onRemoveSeed,
-  onAddSeed,
-  onRefreshSeeds,
-  onQuerySeed,
-  onStart,
   onFocus,
 }: {
   trail: Trail
   activeStep: number
   onOpen: (link: Link) => void
-  onCycleSeed: (i: number) => void
-  onRemoveSeed: (i: number) => void
-  onAddSeed: () => void
-  onRefreshSeeds: () => void
-  onQuerySeed: (query: string) => void
-  onStart: () => void
   onFocus: (pane: number) => void
 }) {
   const wrap = useRef<HTMLDivElement>(null)
@@ -44,8 +33,8 @@ export function Panes({
     [trail.seeds, trail.path]
   )
 
-  const paneCount =
-    1 + (trail.started && !trail.origin ? 1 : 0) + (trail.started ? trail.path.length : 0)
+  // root pane (child 0) + one pane per walked step
+  const paneCount = 1 + trail.path.length
 
   useEffect(() => {
     const pane = wrap.current?.children[activeStep] as HTMLElement | undefined
@@ -81,19 +70,6 @@ export function Panes({
         {trail.origin ? (
           <SharedTrailPane key={`shared-${trail.id}`} origin={trail.origin} onOpen={onOpen} />
         ) : (
-          <SeedPane
-            key={`seed-${trail.id}`}
-            seeds={trail.seeds}
-            started={trail.started}
-            onCycle={onCycleSeed}
-            onRemove={onRemoveSeed}
-            onAdd={onAddSeed}
-            onRefreshAll={onRefreshSeeds}
-            onQuerySeed={onQuerySeed}
-            onStart={onStart}
-          />
-        )}
-        {trail.started && !trail.origin && (
           <ResultsPane
             key={`results-${trail.id}`}
             seeds={trail.seeds}
@@ -101,16 +77,15 @@ export function Panes({
             onOpen={onOpen}
           />
         )}
-        {trail.started &&
-          trail.path.map((link, i) => (
-            <LinkPane
-              key={`${trail.id}-${i}-${link.url}`}
-              link={link}
-              step={i + 1}
-              exclude={excludeUrls}
-              onOpen={onOpen}
-            />
-          ))}
+        {trail.path.map((link, i) => (
+          <LinkPane
+            key={`${trail.id}-${i}-${link.url}`}
+            link={link}
+            step={i + 1}
+            exclude={excludeUrls}
+            onOpen={onOpen}
+          />
+        ))}
       </div>
       {paneCount > 1 && (
         <div className={styles.dots}>

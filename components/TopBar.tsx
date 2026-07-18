@@ -9,6 +9,7 @@ export function TopBar({
   drawerOpen,
   profile,
   onToggleDrawer,
+  onHome,
   onReset,
   onSignIn,
   onSignOut,
@@ -16,6 +17,7 @@ export function TopBar({
   drawerOpen: boolean
   profile: Profile | null
   onToggleDrawer: () => void
+  onHome: () => void
   onReset: () => void
   onSignIn: () => void
   onSignOut: () => void
@@ -25,7 +27,7 @@ export function TopBar({
       <IconButton title="Trails" active={drawerOpen} onClick={onToggleDrawer}>
         ☰
       </IconButton>
-      <div className={styles.brand}>
+      <button className={styles.brand} onClick={onHome} title="Home — start a new trail">
         <span className={styles.mark}>
           <Bear kind="glyph" palette="reverse" size={20} />
         </span>
@@ -33,7 +35,7 @@ export function TopBar({
           Forager
           <small className={styles.small}>trail browser</small>
         </div>
-      </div>
+      </button>
       <div className={styles.spacer} />
       {profile ? (
         <>
