@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Link, TrailOrigin } from '@/lib/types'
 import { SEED_MAX, SEED_MIN } from '@/lib/types'
 import { LinkCard } from './LinkCard'
-import { Thumb } from './ui'
 import styles from './Home.module.css'
 
 /**
@@ -59,7 +58,7 @@ export function Home({
   onAddSeed,
   onRefreshSeeds,
   onStartWalk,
-  onWalkShared,
+  onWalkFrom,
 }: {
   origin?: TrailOrigin
   seeds: Link[]
@@ -70,7 +69,7 @@ export function Home({
   onAddSeed: () => void
   onRefreshSeeds: () => void
   onStartWalk: () => void
-  onWalkShared?: () => void
+  onWalkFrom?: (link: Link) => void
 }) {
   // 'prompt' = choose a path; 'seeds' = review the drawn random links
   const [view, setView] = useState<'prompt' | 'seeds'>('prompt')
@@ -98,7 +97,7 @@ export function Home({
             origin={origin}
             onSeedQuery={onSeedQuery}
             onDrawRandom={drawRandom}
-            onWalkShared={onWalkShared}
+            onWalkFrom={onWalkFrom}
           />
         )}
       </div>
@@ -112,12 +111,12 @@ function PromptView({
   origin,
   onSeedQuery,
   onDrawRandom,
-  onWalkShared,
+  onWalkFrom,
 }: {
   origin?: TrailOrigin
   onSeedQuery: (query: string) => void
   onDrawRandom: () => void
-  onWalkShared?: () => void
+  onWalkFrom?: (link: Link) => void
 }) {
   const [text, setText] = useState('')
   const [picked, setPicked] = useState<Set<string>>(() => new Set())
@@ -145,28 +144,27 @@ function PromptView({
 
   const query = [text.trim(), ...picked].filter(Boolean).join(' ')
 
+  // A shared trail's landing is just its links — click one to start wandering.
+  if (origin) return <SharedRoot origin={origin} onWalkFrom={onWalkFrom} />
+
   return (
     <>
-      {origin ? (
-        <SharedRoot origin={origin} />
-      ) : (
-        <header className={styles.intro}>
-          <div className={styles.mark}>🌱</div>
-          <h1 className={styles.title}>What&rsquo;s been on your mind lately?</h1>
-          <p className={styles.sub}>Plant a question and let the network lead you somewhere.</p>
-        </header>
-      )}
+      <header className={styles.intro}>
+        <div className={styles.mark}>🌱</div>
+        <h1 className={styles.title}>What&rsquo;s been on your mind lately?</h1>
+        <p className={styles.sub}>Plant a question and let the network lead you somewhere.</p>
+      </header>
 
       <section className={styles.query}>
         <input
           className={styles.input}
-          placeholder={origin ? 'Or set off with your own question…' : 'Type anything…'}
+          placeholder="Type anything…"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && query) onSeedQuery(query)
           }}
-          autoFocus={!origin}
+          autoFocus
         />
 
         <div className={styles.topicsRow}>
@@ -187,7 +185,7 @@ function PromptView({
         </div>
 
         <button className={styles.primary} disabled={!query} onClick={() => onSeedQuery(query)}>
-          Begin walking →
+          Start wandering →
         </button>
       </section>
 
@@ -196,19 +194,11 @@ function PromptView({
       </div>
 
       <section className={styles.random}>
-        {origin ? (
-          <button className={styles.secondary} onClick={onWalkShared}>
-            Walk this trail as-is
-          </button>
-        ) : (
-          <button className={styles.secondary} onClick={onDrawRandom}>
-            🍃 Seed your trail with random links
-          </button>
-        )}
+        <button className={styles.secondary} onClick={onDrawRandom}>
+          🍃 Seed your trail with random links
+        </button>
         <p className={styles.hint}>
-          {origin
-            ? 'Follow the links this trail already gathered, then wander onward.'
-            : 'A fresh handful pulled from the network — cycle or swap them before you set off.'}
+          A fresh handful pulled from the network — cycle or swap them before you set off.
         </p>
       </section>
     </>
@@ -268,24 +258,27 @@ function RandomSeeds({
       </section>
 
       <button className={styles.primary} disabled={seeds.length < SEED_MIN} onClick={onStart}>
-        Begin walking →
+        Start wandering →
       </button>
     </>
   )
 }
 
-/** The shared collection shown as the trail's root seed on its landing page. */
-function SharedRoot({ origin }: { origin: TrailOrigin }) {
+/**
+ * The shared collection at the top of its landing page: the trail's title and
+ * every link listed in full. Clicking any link starts a walk from it.
+ */
+function SharedRoot({ origin, onWalkFrom }: { origin: TrailOrigin; onWalkFrom?: (link: Link) => void }) {
   return (
     <header className={styles.sharedRoot}>
       <div className={styles.eyebrow}>⇗ A trail by {origin.author}</div>
       <h1 className={styles.title}>{origin.title}</h1>
       {origin.description && <p className={styles.sub}>{origin.description}</p>}
-      <div className={styles.stack}>
-        {origin.links.slice(0, 6).map((l: Link) => (
-          <Thumb key={l.url} url={l.url} image={l.image} size={34} radius={9} className={styles.stackThumb} />
+      <p className={styles.sharedHint}>Click any link to start wandering from this trail.</p>
+      <div className={styles.sharedLinks}>
+        {origin.links.map((l: Link) => (
+          <LinkCard key={l.url} link={l} onClick={onWalkFrom ? () => onWalkFrom(l) : undefined} />
         ))}
-        {origin.links.length > 6 && <span className={styles.more}>+{origin.links.length - 6}</span>}
       </div>
     </header>
   )

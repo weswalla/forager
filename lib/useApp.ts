@@ -278,11 +278,26 @@ export function useApp() {
   // Hydrate on mount (localStorage is client-only; seeds come from the API).
   useEffect(() => {
     const stored = loadStored()
-    if (stored) {
-      dispatch({ type: 'HYDRATE', ...stored })
-    } else {
+    if (!stored) {
       api.getRandomLinks(SEED_MAX).then((seeds) => dispatch({ type: 'NEW_TRAIL', seeds }))
+      return
     }
+    // A plain refresh shouldn't drop back onto an (unwalked) shared trail's
+    // landing — reopen a regular trail's home instead. The shared trail stays
+    // in the drawer to return to.
+    const current = stored.trails.find((t) => t.id === stored.currentId)
+    if (current?.origin && current.path.length === 0) {
+      const regular = [...stored.trails].reverse().find((t) => !t.origin)
+      if (regular) {
+        dispatch({ type: 'HYDRATE', trails: stored.trails, currentId: regular.id })
+      } else {
+        // no regular trail to fall back to — plant a fresh one
+        dispatch({ type: 'HYDRATE', ...stored })
+        api.getRandomLinks(SEED_MAX).then((seeds) => dispatch({ type: 'NEW_TRAIL', seeds }))
+      }
+      return
+    }
+    dispatch({ type: 'HYDRATE', ...stored })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

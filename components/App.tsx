@@ -184,7 +184,10 @@ export function App({ shared }: { shared?: { handleOrDid: string; recordKey: str
               onAddSeed={app.addSeed}
               onRefreshSeeds={app.refreshSeeds}
               onStartWalk={app.startWalk}
-              onWalkShared={app.enterWalk}
+              onWalkFrom={(link) => {
+                app.open(link)
+                app.enterWalk()
+              }}
             />
           ) : trail ? (
             <>
