@@ -247,14 +247,8 @@ export function App({ route }: { route?: Route }) {
     show('Trail deleted')
   }
 
-  // "Home" always returns to the calm prompt page.
+  // "Home" and "new trail" both return to the calm prompt page.
   const handleHome = () => ensureHome()
-
-  const handleReset = () => {
-    if (!trail) return
-    app.reset()
-    show(trail.started ? 'Steps cleared — back to your seeds' : 'Trail cleared')
-  }
 
   const viewingShared = Boolean(shared) && !imported
 
@@ -265,7 +259,7 @@ export function App({ route }: { route?: Route }) {
         profile={auth.profile}
         onToggleDrawer={() => setDrawerOpen((o) => !o)}
         onHome={handleHome}
-        onReset={handleReset}
+        onNewTrail={handleHome}
         onSignIn={() => setAuthOpen(true)}
         onSignOut={auth.signOut}
       />

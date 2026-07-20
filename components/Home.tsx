@@ -40,7 +40,7 @@ const TOPIC_POOL = [
   'peer-to-peer',
 ]
 
-const TOPICS_SHOWN = 6
+const TOPICS_SHOWN = 4
 
 function windowAt(offset: number): string[] {
   const out: string[] = []

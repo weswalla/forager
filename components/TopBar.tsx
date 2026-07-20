@@ -10,7 +10,7 @@ export function TopBar({
   profile,
   onToggleDrawer,
   onHome,
-  onReset,
+  onNewTrail,
   onSignIn,
   onSignOut,
 }: {
@@ -18,7 +18,7 @@ export function TopBar({
   profile: Profile | null
   onToggleDrawer: () => void
   onHome: () => void
-  onReset: () => void
+  onNewTrail: () => void
   onSignIn: () => void
   onSignOut: () => void
 }) {
@@ -55,8 +55,8 @@ export function TopBar({
           Sign in
         </button>
       )}
-      <IconButton title="Restart trail" onClick={onReset}>
-        ⟲
+      <IconButton title="Start a new trail" onClick={onNewTrail}>
+        ＋
       </IconButton>
     </header>
   )

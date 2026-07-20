@@ -28,12 +28,12 @@
   font-size: 14px;
 }
 
-/* "Finish trail" — floats above the walked-path bar at the bottom of a walk */
+/* "Finish trail" — a distinct floating action, centered just above the path bar */
 .finishBtn {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 92px;
+  bottom: 52px;
   z-index: 16;
   border: none;
   cursor: pointer;
@@ -42,7 +42,7 @@
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.3px;
-  padding: 11px 22px;
+  padding: 11px 20px;
   border-radius: 22px;
   box-shadow: var(--shadow);
   transition: 0.16s;
@@ -55,7 +55,7 @@
 
 @media (max-width: 720px) {
   .finishBtn {
-    bottom: 74px;
+    bottom: 48px;
   }
 }
 

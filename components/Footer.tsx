@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import type { Trail } from '@/lib/types'
 import { PANE_ROOT, paneOfStep, searchQueryOf } from '@/lib/helpers'
 import { LinkCard } from './LinkCard'
-import { Thumb } from './ui'
 import styles from './Footer.module.css'
 
 /**
- * Walked path. On desktop a slim bar sits at the bottom (a grouped Seeds chip +
- * one chip per step) that can expand into a full-height overlay. On mobile the
- * bar isn't useful, so only a compact "trail" trigger shows — tapping it opens
- * the same full-height overlay. The overlay lists the walk vertically as normal
- * url cards.
+ * Walked path. Collapsed, it's a slim bar of position dots (one per pane, the
+ * active one highlighted) with an expand arrow — no labels. Tapping the bar (or
+ * the arrow) opens a full-height overlay that lists the walk vertically as
+ * normal url cards. A "Finish trail" button lives at the far end of the bar
+ * once there's a walk to finish.
  */
 export function Footer({
   trail,
@@ -29,13 +28,6 @@ export function Footer({
   const shared = Boolean(trail.origin)
   const [expanded, setExpanded] = useState(false)
 
-  // keep the newest step visible as the walk grows (collapsed bar scroll)
-  const pathRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const el = pathRef.current
-    if (el) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' })
-  }, [path.length, started])
-
   const seeds = trail.origin ? trail.origin.links.slice(0, 3) : trail.seeds
   // a trail seeded by a single question is labelled by the question, not thumbs
   const query = !shared && seeds.length === 1 ? searchQueryOf(seeds[0].url) : null
@@ -51,83 +43,36 @@ export function Footer({
     setExpanded(false)
   }
 
+  // one dot per pane: the root (seeds/question/shared) then each walked step
+  const paneCount = 1 + path.length
+
   return (
     <>
-      {/* slim desktop bar */}
+      {/* slim bar — navigable position dots centered in the middle, with a small
+          expand icon at the right (scrollable dots when the walk is long) */}
       <footer className={styles.trailBar}>
-        <div className={styles.head}>
-          <span>◈ Walked path</span>
-          <span className={styles.steps}>{summary}</span>
-          <button
-            className={styles.expandBtn}
-            title="Expand the path"
-            onClick={() => setExpanded(true)}
-          >
-            ▴
-          </button>
-        </div>
-        <div className={styles.path} ref={pathRef}>
-          {!started ? (
-            <div className={styles.hint}>🌱 Plant your seeds, then press “Start wandering”.</div>
-          ) : (
-            <>
+        <div className={styles.dots}>
+          <div className={styles.dotsRail}>
+            {Array.from({ length: paneCount }, (_, i) => (
               <button
-                className={`${styles.step} ${styles.seedGroup} ${
-                  activeStep === PANE_ROOT ? styles.active : ''
-                }`}
-                onClick={() => onNavigate(PANE_ROOT)}
-              >
-                {query ? (
-                  <span className={styles.seedStack}>🔎</span>
-                ) : (
-                  <span className={styles.seedStack}>
-                    {seeds.map((s) => (
-                      <Thumb key={s.url} url={s.url} image={s.image} size={24} radius={7} className={styles.stackThumb} />
-                    ))}
-                  </span>
-                )}
-                <span className={`${styles.title} ${styles.seedTitle}`}>
-                  {query ? `“${query}”` : originLabel}
-                </span>
-              </button>
-              {path.map((link, i) => {
-                const paneIdx = paneOfStep(i)
-                return (
-                  <span key={`${i}-${link.url}`} className={styles.segment}>
-                    <span className={styles.connector}>›</span>
-                    <span
-                      className={`${styles.step} ${paneIdx === activeStep ? styles.active : ''}`}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => onNavigate(paneIdx)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') onNavigate(paneIdx) }}
-                    >
-                      <Thumb url={link.url} image={link.image} size={26} radius={7} />
-                      <span className={styles.title}>{link.title}</span>
-                      {!trail.collection && (
-                        <button
-                          className={styles.x}
-                          title="Remove from trail"
-                          onClick={(e) => { e.stopPropagation(); onRemoveStep(i) }}
-                        >
-                          ×
-                        </button>
-                      )}
-                    </span>
-                  </span>
-                )
-              })}
-            </>
-          )}
+                key={i}
+                className={`${styles.dot} ${i === activeStep ? styles.dotOn : ''}`}
+                aria-label={`Go to pane ${i + 1}`}
+                aria-current={i === activeStep ? 'true' : undefined}
+                onClick={() => onNavigate(i)}
+              />
+            ))}
+          </div>
         </div>
+        <button
+          className={styles.expandIcon}
+          title="Expand the walked path"
+          aria-label="Expand the walked path"
+          onClick={() => setExpanded(true)}
+        >
+          ⤢
+        </button>
       </footer>
-
-      {/* compact mobile trigger — the slim bar isn't useful on phones */}
-      <button className={styles.mobileTrigger} onClick={() => setExpanded(true)}>
-        <span className={styles.mobileTriggerLabel}>◈ Walked path</span>
-        <span className={styles.mobileTriggerSteps}>{summary}</span>
-        <span className={styles.mobileTriggerChevron}>▴</span>
-      </button>
 
       {/* full-height overlay — the walk as a vertical list of url cards */}
       {expanded && (

@@ -27,40 +27,6 @@
   border-radius: 20px;
 }
 
-/* ---- floating gallery dots (phone) ---- */
-
-.dots {
-  display: none;
-  position: absolute;
-  left: 50%;
-  bottom: 10px;
-  transform: translateX(-50%);
-  gap: 7px;
-  padding: 6px 10px;
-  border-radius: 20px;
-  background: rgba(251, 246, 238, 0.82);
-  backdrop-filter: blur(6px);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-sm);
-  z-index: 5;
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: none;
-  padding: 0;
-  background: var(--line);
-  cursor: pointer;
-  transition: 0.18s;
-}
-
-.dotOn {
-  background: var(--accent);
-  transform: scale(1.25);
-}
-
 @media (max-width: 720px) {
   .panes {
     padding: 0;
@@ -76,9 +42,5 @@
     display: none;
     width: 0;
     height: 0;
-  }
-
-  .dots {
-    display: flex;
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { Link, Trail } from '@/lib/types'
 import { LinkPane, ResultsPane, SharedTrailPane } from './Pane'
 import styles from './Panes.module.css'
@@ -25,7 +25,6 @@ export function Panes({
 }) {
   const wrap = useRef<HTMLDivElement>(null)
   const settle = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [visible, setVisible] = useState(0)
 
   // urls already on the trail — hidden from every related list
   const excludeUrls = useMemo(
@@ -33,17 +32,13 @@ export function Panes({
     [trail.seeds, trail.path]
   )
 
-  // root pane (child 0) + one pane per walked step
-  const paneCount = 1 + trail.path.length
-
   useEffect(() => {
     const pane = wrap.current?.children[activeStep] as HTMLElement | undefined
     pane?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
-    setVisible(Math.min(activeStep, paneCount - 1))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStep, trail.id, trail.started, trail.path.length])
 
-  /** Track which pane the gallery has settled on; sync focus after scrolling stops. */
+  /** Sync focus (which drives the bottom dots) once the gallery settles on a pane. */
   const handleScroll = (e: React.UIEvent) => {
     const el = wrap.current
     if (!el || e.target !== el) return // ignore bubbled scrolls from pane bodies
@@ -57,7 +52,11 @@ export function Panes({
         best = i
       }
     })
-    setVisible(best)
+    // On desktop several panes are visible at once, so the last pane's left edge
+    // can never reach the container's left — "closest to left" would wrongly snap
+    // back off the final pane. If we're scrolled to the end, the last pane is active.
+    const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 2
+    if (atEnd) best = el.children.length - 1
     if (settle.current) clearTimeout(settle.current)
     settle.current = setTimeout(() => {
       if (best !== activeStep) onFocus(best)
@@ -86,18 +85,6 @@ export function Panes({
           />
         ))}
       </div>
-      {paneCount > 1 && (
-        <div className={styles.dots}>
-          {Array.from({ length: paneCount }, (_, i) => (
-            <button
-              key={i}
-              className={`${styles.dot} ${i === visible ? styles.dotOn : ''}`}
-              aria-label={`Go to pane ${i + 1}`}
-              onClick={() => onFocus(i)}
-            />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

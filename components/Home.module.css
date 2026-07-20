@@ -3,9 +3,8 @@
   min-height: 0;
   overflow-y: auto;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 28px 20px 48px;
+  padding: 20px 20px 24px;
 }
 
 .inner {
@@ -13,7 +12,10 @@
   max-width: 480px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
+  /* center vertically when there's room, but never clip the top when the
+     content (e.g. a long shared trail) is taller than the viewport */
+  margin: auto 0;
   animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -35,14 +37,14 @@
 }
 
 .mark {
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .title {
   margin: 0;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.2;
@@ -50,10 +52,10 @@
 }
 
 .sub {
-  margin: 8px 0 0;
-  font-size: 14.5px;
+  margin: 6px 0 0;
+  font-size: 14px;
   color: var(--ink-soft);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 /* ---- shared trail root seed ---- */
@@ -165,7 +167,7 @@
 .query {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .input {
@@ -173,7 +175,7 @@
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 13px 16px;
   font-family: inherit;
   font-size: 16px;
   color: var(--ink);
@@ -251,7 +253,7 @@
   background: var(--accent);
   color: #fff;
   border-radius: 14px;
-  padding: 14px 18px;
+  padding: 13px 18px;
   font-family: inherit;
   font-size: 15.5px;
   font-weight: 600;
@@ -316,10 +318,10 @@
 }
 
 .hint {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-size: 12.5px;
   color: var(--ink-faint);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 @media (max-width: 720px) {
