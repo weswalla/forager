@@ -78,6 +78,12 @@ export function searchSeedLink(query: string): Link {
   }
 }
 
+/** A Bluesky compose-intent URL that pre-fills a post sharing `url`. */
+export function blueskyShareUrl(text: string, url: string): string {
+  const body = `${text}\n\n${url}`
+  return `https://bsky.app/intent/compose?text=${encodeURIComponent(body)}`
+}
+
 /** The query of a search-seed url, or null for ordinary links. */
 export function searchQueryOf(url: string): string | null {
   if (!url.startsWith(SEMBLE_SEARCH_BASE)) return null

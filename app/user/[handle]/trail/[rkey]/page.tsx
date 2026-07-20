@@ -47,5 +47,5 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 /** Share link: {app_url}/user/{handle or did}/trail/{recordKey} */
 export default async function SharedTrailPage({ params }: { params: Params }) {
   const { handle, rkey } = await params
-  return <App shared={{ handleOrDid: decodeURIComponent(handle), recordKey: rkey }} />
+  return <App route={{ kind: 'shared', handleOrDid: decodeURIComponent(handle), recordKey: rkey }} />
 }

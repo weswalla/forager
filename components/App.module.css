@@ -28,6 +28,37 @@
   font-size: 14px;
 }
 
+/* "Finish trail" — floats above the walked-path bar at the bottom of a walk */
+.finishBtn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 92px;
+  z-index: 16;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--sage), #9ca87e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 11px 22px;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  transition: 0.16s;
+}
+
+.finishBtn:hover {
+  transform: translateX(-50%) translateY(-1px);
+  filter: brightness(1.05);
+}
+
+@media (max-width: 720px) {
+  .finishBtn {
+    bottom: 74px;
+  }
+}
+
 .scrim {
   position: absolute;
   inset: 0;

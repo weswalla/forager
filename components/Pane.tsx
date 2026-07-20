@@ -175,12 +175,10 @@ export function ResultsPane({
 
 export function LinkPane({
   link,
-  step,
   exclude,
   onOpen,
 }: {
   link: Link
-  step: number
   exclude: Set<string>
   onOpen: (link: Link) => void
 }) {
@@ -189,7 +187,6 @@ export function LinkPane({
   return (
     <section className={styles.pane}>
       <div className={styles.head}>
-        <div className={styles.eyebrow}>◷ Step {step}</div>
         <LinkCard
           link={link}
           variant="header"

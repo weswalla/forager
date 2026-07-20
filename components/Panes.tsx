@@ -81,7 +81,6 @@ export function Panes({
           <LinkPane
             key={`${trail.id}-${i}-${link.url}`}
             link={link}
-            step={i + 1}
             exclude={excludeUrls}
             onOpen={onOpen}
           />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useReducer, useState } from 'react'
-import type { CollectionRef, Link, Profile, Related, Trail, TrailCollection } from './types'
+import type { CollectionRef, Link, Profile, Related, Trail, TrailCollection, TrailHighlight } from './types'
 import { SEED_MAX, SEED_MIN } from './types'
 import { PANE_ROOT, dedupeByUrl, newId, paneOfStep, searchSeedLink, today } from './helpers'
 import { api } from './api'
@@ -26,6 +26,7 @@ type Action =
   | { type: 'SELECT'; id: string }
   | { type: 'RENAME'; id: string; title: string }
   | { type: 'SET_DESC'; id: string; description: string }
+  | { type: 'SET_HIGHLIGHT'; id: string; highlight: TrailHighlight | undefined }
   | { type: 'CYCLE_SEED'; index: number; link: Link } // before start only
   | { type: 'SET_SEEDS'; seeds: Link[] } // refresh the whole seed list at once
   | { type: 'REMOVE_SEED'; index: number } // keep ≥ 1
@@ -162,6 +163,11 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_DESC':
       return updateTrail(state, action.id, (t) =>
         t.collection ? t : { ...t, description: action.description.trim() }
+      )
+
+    case 'SET_HIGHLIGHT':
+      return updateTrail(state, action.id, (t) =>
+        t.collection ? t : { ...t, highlight: action.highlight }
       )
 
     case 'CYCLE_SEED': {
@@ -384,6 +390,20 @@ export function useApp() {
   const goHome = useCallback(() => dispatch({ type: 'GO_HOME' }), [])
   const enterWalk = useCallback(() => dispatch({ type: 'ENTER_WALK' }), [])
 
+  /**
+   * Select a trail by id and show its walk. Returns false if no such trail
+   * exists (e.g. a /trail/{id} URL for a trail this browser never created).
+   */
+  const openTrail = useCallback(
+    (id: string): boolean => {
+      if (!state.trails.some((t) => t.id === id)) return false
+      dispatch({ type: 'SELECT', id })
+      dispatch({ type: 'ENTER_WALK' })
+      return true
+    },
+    [state.trails]
+  )
+
   const deleteTrail = useCallback(
     (id: string) => {
       dispatch({ type: 'DELETE_TRAIL', id })
@@ -435,12 +455,15 @@ export function useApp() {
     startWalk,
     goHome,
     enterWalk,
+    openTrail,
     deleteTrail,
     saveAsCollection,
     importShared,
     select: (id: string) => dispatch({ type: 'SELECT', id }),
     rename: (id: string, title: string) => dispatch({ type: 'RENAME', id, title }),
     setDescription: (id: string, description: string) => dispatch({ type: 'SET_DESC', id, description }),
+    setHighlight: (id: string, highlight: TrailHighlight | undefined) =>
+      dispatch({ type: 'SET_HIGHLIGHT', id, highlight }),
     removeSeed: (index: number) => dispatch({ type: 'REMOVE_SEED', index }),
     start: () => dispatch({ type: 'START' }),
     open: (link: Link) => dispatch({ type: 'OPEN', link }),
