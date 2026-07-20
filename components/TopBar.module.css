@@ -27,11 +27,6 @@
   cursor: pointer;
 }
 
-.brand:hover .mark {
-  transform: translateY(-1px);
-  transition: transform 0.16s;
-}
-
 .mark {
   width: 26px;
   height: 26px;
@@ -86,7 +81,6 @@
 
 .signIn:hover {
   background: #f7e9df;
-  transform: translateY(-1px);
 }
 
 @media (max-width: 720px) {

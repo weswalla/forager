@@ -235,11 +235,12 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  border-radius: 15px;
   transition: 0.16s;
 }
 
+/* the active ring hugs the card body only, so it never overlaps the step number */
 .sheetCardActive {
+  border-radius: 15px;
   box-shadow: 0 0 0 2px var(--accent);
 }
 
@@ -261,6 +262,7 @@
 .sheetCardBody {
   flex: 1;
   min-width: 0;
+  border-radius: 15px;
 }
 
 @media (max-width: 720px) {

@@ -55,6 +55,13 @@ export interface Profile {
   avatar?: string
 }
 
+/** A person who has saved one of the trail's links to their Semble library. */
+export interface Curator {
+  handle: string
+  displayName: string
+  avatar?: string
+}
+
 /** A trail collection resolved from a share link. */
 export interface TrailCollection {
   uri: string

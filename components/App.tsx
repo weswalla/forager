@@ -291,14 +291,8 @@ export function App({ route }: { route?: Route }) {
           ) : trail && app.state.phase === 'home' ? (
             <Home
               origin={trail.origin}
-              seeds={trail.seeds}
               onSeedQuery={app.seedWithQuery}
-              onDrawRandom={app.drawRandom}
-              onCycleSeed={app.cycleSeed}
-              onRemoveSeed={app.removeSeed}
-              onAddSeed={app.addSeed}
-              onRefreshSeeds={app.refreshSeeds}
-              onStartWalk={app.startWalk}
+              onSeedRandom={app.seedRandom}
               onWalkFrom={(link) => {
                 app.open(link)
                 app.enterWalk()

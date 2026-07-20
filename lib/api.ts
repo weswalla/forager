@@ -1,5 +1,6 @@
 import type {
   CollectionRef,
+  Curator,
   Link,
   Profile,
   Related,
@@ -26,6 +27,7 @@ export interface Api {
   getRelated(url: string): Promise<Related[]>; // mutual + similar + connected, interwoven
   getSeedResults(urls: string[]): Promise<Related[]>; // aggregate across seeds, deduped
   getRandomLinks(n: number, excludeUrls?: string[]): Promise<Link[]>; // seed suggestions (global feed)
+  getCurators(urls: string[]): Promise<Curator[]>; // people who saved any of these urls, deduped
   saveCollection(trail: Trail, profile: Profile): Promise<CollectionRef>; // save → shareable
   saveLink(url: string, note?: string): Promise<void>; // add a URL to my Semble library
   signIn(apiKey: string): Promise<Profile>; // validate key, return profile
@@ -39,6 +41,16 @@ export interface Api {
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const jitter = () => 180 + Math.random() * 320;
+
+const MOCK_CURATORS: Curator[] = [
+  { handle: "wanderer.semble.dev", displayName: "Wandering Bear" },
+  { handle: "mossgrove.semble.dev", displayName: "Moss Grove" },
+  { handle: "junegarden.semble.dev", displayName: "June Garden" },
+  { handle: "atlas.semble.dev", displayName: "Atlas Wren" },
+  { handle: "lantern.semble.dev", displayName: "Lantern Fox" },
+  { handle: "riverstone.semble.dev", displayName: "River Stone" },
+  { handle: "quill.semble.dev", displayName: "Quill Marsh" },
+];
 
 function splitByRel(rels: Related[]): Record<Rel, Related[]> {
   return {
@@ -81,6 +93,20 @@ const mockApi: Api = {
       out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     }
     return out;
+  },
+
+  async getCurators(urls) {
+    await delay(jitter());
+    // deterministic per-url subset so the list feels stable across renders
+    const seen = new Map<string, Curator>();
+    for (const url of urls) {
+      const base = [...url].reduce((a, c) => a + c.charCodeAt(0), 0);
+      for (let i = 0; i < 3; i++) {
+        const c = MOCK_CURATORS[(base + i * 7) % MOCK_CURATORS.length];
+        if (!seen.has(c.handle)) seen.set(c.handle, c);
+      }
+    }
+    return [...seen.values()];
   },
 
   async saveCollection(trail, profile) {
@@ -379,6 +405,33 @@ async function getSeedPool(): Promise<Link[]> {
   return getFeedPool();
 }
 
+/* ---- curators: people who saved the trail's links ---- */
+
+interface LibraryEntry {
+  user: {
+    handle: string;
+    name?: string;
+    avatarUrl?: string;
+  };
+}
+
+const CURATORS_PER_URL = 20;
+
+/** People who have this url in their library (one page, most recent first). */
+async function fetchSavers(url: string): Promise<Curator[]> {
+  const { libraries } = await xrpc<{ libraries: LibraryEntry[] }>(
+    "network.cosmik.card.getLibrariesForUrl",
+    { params: { url, limit: CURATORS_PER_URL, sortBy: "createdAt", sortOrder: "desc" } },
+  );
+  return libraries
+    .filter((l) => l.user?.handle)
+    .map((l) => ({
+      handle: l.user.handle,
+      displayName: l.user.name || l.user.handle,
+      avatar: l.user.avatarUrl,
+    }));
+}
+
 const recordKeyFromUri = (uri: string) => uri.split("/").pop() ?? uri;
 
 function pageToTrailCollection(page: CollectionPage): TrailCollection {
@@ -422,6 +475,18 @@ const sembleApi: Api = {
       out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
     }
     return out;
+  },
+
+  async getCurators(urls) {
+    const perUrl = await Promise.all(
+      urls.map((u) => fetchSavers(u).catch(() => [] as Curator[])),
+    );
+    // dedupe by handle across every link in the trail
+    const seen = new Map<string, Curator>();
+    for (const c of perUrl.flat()) {
+      if (!seen.has(c.handle)) seen.set(c.handle, c);
+    }
+    return [...seen.values()];
   },
 
   async saveCollection(trail, profile) {

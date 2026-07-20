@@ -17,6 +17,9 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* positioning context for the floating Finish button, so it centers on the
+     panes area — and shifts with the footer — when the side drawer opens */
+  position: relative;
 }
 
 .loading {
@@ -49,7 +52,6 @@
 }
 
 .finishBtn:hover {
-  transform: translateX(-50%) translateY(-1px);
   filter: brightness(1.05);
 }
 

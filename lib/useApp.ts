@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useReducer, useState } from 'react'
-import type { CollectionRef, Link, Profile, Related, Trail, TrailCollection, TrailHighlight } from './types'
+import type { CollectionRef, Curator, Link, Profile, Related, Trail, TrailCollection, TrailHighlight } from './types'
 import { SEED_MAX, SEED_MIN } from './types'
 import { PANE_ROOT, dedupeByUrl, newId, paneOfStep, searchSeedLink, today } from './helpers'
 import { api } from './api'
@@ -321,35 +321,6 @@ export function useApp() {
     dispatch({ type: 'NEW_TRAIL', seeds })
   }, [])
 
-  const cycleSeed = useCallback(
-    async (index: number) => {
-      const [link] = await api.getRandomLinks(1, seedUrls)
-      if (link) dispatch({ type: 'CYCLE_SEED', index, link })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [seedUrls.join('|')]
-  )
-
-  const addSeed = useCallback(
-    async () => {
-      const [link] = await api.getRandomLinks(1, seedUrls)
-      if (link) dispatch({ type: 'ADD_SEED', link })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [seedUrls.join('|')]
-  )
-
-  /** Swap the whole seed list for a fresh draw (keeps the current count). */
-  const refreshSeeds = useCallback(
-    async () => {
-      const n = trail?.seeds.length ?? SEED_MAX
-      const seeds = await api.getRandomLinks(n, seedUrls)
-      if (seeds.length) dispatch({ type: 'SET_SEEDS', seeds })
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [trail?.seeds.length, seedUrls.join('|')]
-  )
-
   /**
    * From the home landing: plant a question and begin walking. The query is the
    * sole seed — no other links — so the results pane reflects just the question.
@@ -371,21 +342,27 @@ export function useApp() {
     [trail?.origin, trail?.started, trail?.id]
   )
 
-  /** Draw a fresh handful of random seeds onto the current trail (no walk yet). */
-  const drawRandom = useCallback(
+  /**
+   * From the home landing: seed with a single fresh random link and begin
+   * walking. A new random link is drawn on every call (nothing is "kept"), so
+   * tapping the button repeatedly always sets off from a different link.
+   * Mirrors seedWithQuery: reuse a fresh landing trail, else diverge.
+   */
+  const seedRandom = useCallback(
     async () => {
-      const seeds = await api.getRandomLinks(SEED_MAX, seedUrls)
-      if (seeds.length) dispatch({ type: 'SET_SEEDS', seeds })
+      const [link] = await api.getRandomLinks(1, seedUrls)
+      if (!link) return
+      if (trail && !trail.origin && !trail.started) {
+        dispatch({ type: 'SET_SEEDS', seeds: [link] })
+      } else {
+        dispatch({ type: 'NEW_TRAIL', seeds: [link] })
+      }
+      dispatch({ type: 'START' })
+      dispatch({ type: 'ENTER_WALK' })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [seedUrls.join('|')]
+    [trail?.origin, trail?.started, trail?.id, seedUrls.join('|')]
   )
-
-  /** Lock the current seeds and enter the walk (from the random-seeds view). */
-  const startWalk = useCallback(() => {
-    dispatch({ type: 'START' })
-    dispatch({ type: 'ENTER_WALK' })
-  }, [])
 
   const goHome = useCallback(() => dispatch({ type: 'GO_HOME' }), [])
   const enterWalk = useCallback(() => dispatch({ type: 'ENTER_WALK' }), [])
@@ -447,12 +424,8 @@ export function useApp() {
     state,
     trail,
     newTrail,
-    cycleSeed,
-    addSeed,
-    refreshSeeds,
     seedWithQuery,
-    drawRandom,
-    startWalk,
+    seedRandom,
     goHome,
     enterWalk,
     openTrail,
@@ -523,4 +496,28 @@ export function usePaneData(url: string) {
 export function useSeedResults(urls: string[]) {
   const key = `seeds:${urls.join('|')}`
   return useRelatedData(key, () => api.getSeedResults(urls))
+}
+
+/**
+ * The people curating a trail's links — deduped across every url. Loads once
+ * per url-set; used on the finish screen ("meet the people curating these").
+ */
+export function useCurators(urls: string[]) {
+  const key = urls.join('|')
+  const [curators, setCurators] = useState<Curator[] | null>(null)
+  useEffect(() => {
+    if (!urls.length) {
+      setCurators([])
+      return
+    }
+    let cancelled = false
+    setCurators(null)
+    api.getCurators(urls).then(
+      (c) => { if (!cancelled) setCurators(c) },
+      () => { if (!cancelled) setCurators([]) }
+    )
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
+  return curators
 }

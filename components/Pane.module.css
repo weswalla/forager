@@ -161,14 +161,12 @@
 
 .startWander:hover {
   filter: brightness(1.05);
-  transform: translateY(-1px);
 }
 
 .startWander:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   filter: none;
-  transform: none;
 }
 
 /* ---- query seed: "what's been on your mind lately?" ---- */

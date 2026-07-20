@@ -22,3 +22,7 @@
 - [x] lets remove the pill filters and source pills in the panes (e.g. no floating filters at the top and no need to include the source "mutual" "similar" "connected" in the link card)
 - [x] top right button should be a button that starts a new trail (which just goes to the home prompt page) instead of being "restart trail button"
 - [x] the home prompt page should be fully visible, and not need a scroll to see the bottom (e.g. the example prompt pills take up too much space)
+- [x] Finish button should move like the bottom footer when side panel opens
+- [x] Expanded trail view link card border outline covers too much when clicked (the border covered the number on the left)
+- [x] Meet the people curating these links (list of users who curated these links) - on the finish trail window, show a list of all the users that curated these links (for each link in the trail, get the list of users who saved it to their library, deduplicate the list
+- [x] Change the seed links to be just one - it picks one randomly. And it should pick a random one each time that button on the home prompt page is clicked (right now it keeps whatever was last selected)

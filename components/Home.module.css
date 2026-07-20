@@ -244,7 +244,6 @@
 .cycle:hover {
   border-color: var(--accent);
   color: var(--accent);
-  transform: rotate(90deg);
 }
 
 .primary {

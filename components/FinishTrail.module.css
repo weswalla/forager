@@ -250,14 +250,12 @@
 }
 
 .publish:hover {
-  transform: translateY(-1px);
   filter: brightness(1.05);
 }
 
 .publish:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
   filter: none;
 }
 
@@ -282,7 +280,6 @@
 }
 
 .bsky:hover {
-  transform: translateY(-1px);
   filter: brightness(1.05);
 }
 
@@ -312,6 +309,82 @@
 
 .done:hover {
   color: var(--ink);
+}
+
+/* ---- curators ("meet the people curating these links") ---- */
+
+.curators {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.curatorsLoading {
+  font-size: 13px;
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0;
+}
+
+.curatorList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.curatorLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 11px;
+  text-decoration: none;
+  color: inherit;
+  transition: 0.16s;
+}
+
+.curatorLink:hover {
+  background: var(--surface);
+}
+
+.curatorAvatar {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.curatorText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.curatorName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.curatorHandle {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .highlightNote {

@@ -2,19 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { Link, TrailOrigin } from '@/lib/types'
-import { SEED_MAX, SEED_MIN } from '@/lib/types'
 import { LinkCard } from './LinkCard'
 import styles from './Home.module.css'
 
 /**
  * The calm landing. Before any walking begins, the user chooses ONE of two
  * ways to seed a trail:
- *   1. plant a question (free text + a rotating set of topic pills), which
- *      begins the walk straight away on the search-results pane, or
- *   2. seed with a handful of random links — which stays on this calm page,
- *      showing the drawn seeds to cycle/remove/refresh before walking.
- * For a shared trail, the shared collection sits at the top as the "root"
- * seed and the same two options appear below.
+ *   1. plant a question (free text + a rotating set of topic pills), or
+ *   2. seed with a single random link (a fresh one on every tap).
+ * Either choice begins the walk straight away. For a shared trail, the shared
+ * collection sits at the top as the "root" seed and clicking a link walks from it.
  */
 
 // A broad pool of topics; a fresh window of six is shown on each refresh so the
@@ -50,56 +47,24 @@ function windowAt(offset: number): string[] {
 
 export function Home({
   origin,
-  seeds,
   onSeedQuery,
-  onDrawRandom,
-  onCycleSeed,
-  onRemoveSeed,
-  onAddSeed,
-  onRefreshSeeds,
-  onStartWalk,
+  onSeedRandom,
   onWalkFrom,
 }: {
   origin?: TrailOrigin
-  seeds: Link[]
   onSeedQuery: (query: string) => void
-  onDrawRandom: () => void
-  onCycleSeed: (i: number) => void
-  onRemoveSeed: (i: number) => void
-  onAddSeed: () => void
-  onRefreshSeeds: () => void
-  onStartWalk: () => void
+  onSeedRandom: () => void
   onWalkFrom?: (link: Link) => void
 }) {
-  // 'prompt' = choose a path; 'seeds' = review the drawn random links
-  const [view, setView] = useState<'prompt' | 'seeds'>('prompt')
-
-  const drawRandom = () => {
-    onDrawRandom()
-    setView('seeds')
-  }
-
   return (
     <div className={styles.home}>
       <div className={styles.inner}>
-        {view === 'seeds' && !origin ? (
-          <RandomSeeds
-            seeds={seeds}
-            onBack={() => setView('prompt')}
-            onCycle={onCycleSeed}
-            onRemove={onRemoveSeed}
-            onAdd={onAddSeed}
-            onRefresh={onRefreshSeeds}
-            onStart={onStartWalk}
-          />
-        ) : (
-          <PromptView
-            origin={origin}
-            onSeedQuery={onSeedQuery}
-            onDrawRandom={drawRandom}
-            onWalkFrom={onWalkFrom}
-          />
-        )}
+        <PromptView
+          origin={origin}
+          onSeedQuery={onSeedQuery}
+          onSeedRandom={onSeedRandom}
+          onWalkFrom={onWalkFrom}
+        />
       </div>
     </div>
   )
@@ -110,12 +75,12 @@ export function Home({
 function PromptView({
   origin,
   onSeedQuery,
-  onDrawRandom,
+  onSeedRandom,
   onWalkFrom,
 }: {
   origin?: TrailOrigin
   onSeedQuery: (query: string) => void
-  onDrawRandom: () => void
+  onSeedRandom: () => void
   onWalkFrom?: (link: Link) => void
 }) {
   const [text, setText] = useState('')
@@ -194,72 +159,13 @@ function PromptView({
       </div>
 
       <section className={styles.random}>
-        <button className={styles.secondary} onClick={onDrawRandom}>
-          🍃 Seed your trail with random links
+        <button className={styles.secondary} onClick={onSeedRandom}>
+          🍃 Seed your trail with a random link
         </button>
         <p className={styles.hint}>
-          A fresh handful pulled from the network — cycle or swap them before you set off.
+          One link plucked from the network — tap again for a different starting point.
         </p>
       </section>
-    </>
-  )
-}
-
-/* ---- the random-seeds review view (still calm, still the home page) ---- */
-
-function RandomSeeds({
-  seeds,
-  onBack,
-  onCycle,
-  onRemove,
-  onAdd,
-  onRefresh,
-  onStart,
-}: {
-  seeds: Link[]
-  onBack: () => void
-  onCycle: (i: number) => void
-  onRemove: (i: number) => void
-  onAdd: () => void
-  onRefresh: () => void
-  onStart: () => void
-}) {
-  return (
-    <>
-      <header className={styles.intro}>
-        <button className={styles.back} onClick={onBack}>
-          ← Back to the prompt
-        </button>
-        <div className={styles.mark}>🍃</div>
-        <h1 className={styles.title}>A handful to start from</h1>
-        <p className={styles.sub}>Swap or remove any of these, then set off wandering.</p>
-      </header>
-
-      <section className={styles.seeds}>
-        {seeds.map((s, i) => (
-          <LinkCard
-            key={s.url}
-            link={s}
-            variant="seed"
-            onCycle={() => onCycle(i)}
-            onRemove={seeds.length > SEED_MIN ? () => onRemove(i) : undefined}
-          />
-        ))}
-        <div className={styles.seedRow}>
-          {seeds.length < SEED_MAX && (
-            <button className={styles.seedBtn} onClick={onAdd}>
-              ＋ Add a seed
-            </button>
-          )}
-          <button className={styles.seedBtn} onClick={onRefresh}>
-            ⟳ Fresh handful
-          </button>
-        </div>
-      </section>
-
-      <button className={styles.primary} disabled={seeds.length < SEED_MIN} onClick={onStart}>
-        Start wandering →
-      </button>
     </>
   )
 }

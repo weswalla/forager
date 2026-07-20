@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { Link, Profile, Trail, TrailHighlight } from '@/lib/types'
+import type { Curator, Link, Profile, Trail, TrailHighlight } from '@/lib/types'
 import { blueskyShareUrl, dedupeByUrl } from '@/lib/helpers'
+import { useCurators } from '@/lib/useApp'
 import { Bear } from './Bear'
 import { LinkCard } from './LinkCard'
 import { Thumb } from './ui'
@@ -157,6 +158,8 @@ export function FinishTrail({
 
           {published && trail.highlight && <HighlightNote links={links} highlight={trail.highlight} />}
 
+          <Curators urls={links.map((l) => l.url)} />
+
           {!published ? (
             <div className={styles.form}>
               <div className={styles.sectionLabel}>Name your trail</div>
@@ -237,6 +240,56 @@ function PickableCard({
         <LinkCard link={link} />
       </div>
     </div>
+  )
+}
+
+/**
+ * "Meet the people curating these links" — everyone who has saved any of the
+ * trail's links to their Semble library, deduplicated across the whole trail.
+ */
+function Curators({ urls }: { urls: string[] }) {
+  const curators = useCurators(urls)
+
+  if (curators !== null && curators.length === 0) return null
+
+  return (
+    <div className={styles.curators}>
+      <div className={styles.sectionLabel}>Meet the people curating these links</div>
+      {curators === null ? (
+        <p className={styles.curatorsLoading}>Gathering curators…</p>
+      ) : (
+        <ul className={styles.curatorList}>
+          {curators.map((c) => (
+            <li key={c.handle} className={styles.curator}>
+              <a
+                className={styles.curatorLink}
+                href={`https://semble.so/${c.handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <CuratorAvatar curator={c} />
+                <span className={styles.curatorText}>
+                  <span className={styles.curatorName}>{c.displayName}</span>
+                  <span className={styles.curatorHandle}>@{c.handle}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function CuratorAvatar({ curator }: { curator: Curator }) {
+  if (curator.avatar) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className={styles.curatorAvatar} src={curator.avatar} alt="" />
+  }
+  return (
+    <span className={styles.curatorAvatar}>
+      <Bear kind="head" palette="sage" size={30} />
+    </span>
   )
 }
 

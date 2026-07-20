@@ -114,13 +114,11 @@
 }
 
 .submit:hover {
-  transform: translateY(-1px);
   filter: brightness(1.05);
 }
 
 .submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
   filter: none;
 }

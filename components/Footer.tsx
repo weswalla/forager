@@ -114,9 +114,9 @@ export function Footer({
                     return (
                       <div key={`${i}-${link.url}`} className={styles.sheetStep}>
                         <span className={styles.sheetConnector}>↓</span>
-                        <div className={`${styles.sheetCard} ${paneIdx === activeStep ? styles.sheetCardActive : ''}`}>
+                        <div className={styles.sheetCard}>
                           <span className={styles.sheetNum}>{i + 1}</span>
-                          <div className={styles.sheetCardBody}>
+                          <div className={`${styles.sheetCardBody} ${paneIdx === activeStep ? styles.sheetCardActive : ''}`}>
                             <LinkCard
                               link={link}
                               onClick={() => navigate(paneIdx)}

@@ -45,7 +45,7 @@
 }
 
 .trail:hover {
-  transform: translateY(-1px);
+  border-color: var(--accent-2);
   box-shadow: var(--shadow-sm);
 }
 
@@ -128,14 +128,12 @@
 
 .saveCollection:hover {
   filter: brightness(1.05);
-  transform: translateY(-1px);
 }
 
 .saveCollection:disabled {
   opacity: 0.6;
   cursor: default;
   filter: none;
-  transform: none;
 }
 
 .savedBadge {
