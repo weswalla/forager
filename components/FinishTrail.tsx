@@ -1,24 +1,28 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { Curator, Link, Profile, Trail, TrailHighlight } from '@/lib/types'
+import type { Curator, Link, Profile, Trail } from '@/lib/types'
 import { blueskyShareUrl, dedupeByUrl } from '@/lib/helpers'
 import { useCurators } from '@/lib/useApp'
 import { Bear } from './Bear'
 import { LinkCard } from './LinkCard'
-import { Thumb } from './ui'
 import styles from './FinishTrail.module.css'
 
 /**
- * The end of a walk. The trail is shown as a vertical list; an optional
- * "pairing" reflection asks which two links stood out (and why); then a
- * name/describe form publishes it to Semble and offers a share to Bluesky.
+ * The end of a walk, as a calm two-step flow:
+ *   1. Review  — scroll the trail (remove any step) and see who curated the links.
+ *   2. Publish — name & describe, publish to Semble, then share to Bluesky with a
+ *      live preview of the post (text + link embed) before posting.
+ * A published trail is read-only and jumps straight to the share step.
  */
+type Step = 'review' | 'publish'
+
 export function FinishTrail({
   trail,
   profile,
   pending,
   error,
+  onRemoveStep,
   onPublish,
   onClose,
 }: {
@@ -26,45 +30,54 @@ export function FinishTrail({
   profile: Profile | null
   pending: boolean
   error: string | null
+  // remove a walked step (by path index) from the trail while reviewing
+  onRemoveStep: (index: number) => void
   // publish returns the shareable URL (path) so we can offer Bluesky/copy
-  onPublish: (info: {
-    title: string
-    description: string
-    highlight: TrailHighlight | undefined
-  }) => Promise<string | null>
+  onPublish: (info: { title: string; description: string }) => Promise<string | null>
   onClose: () => void
 }) {
-  // the walk, in order: root (seeds or shared origin) then each step
-  const links = useMemo(() => {
+  // the walk, in order: root (seeds or shared origin) then each step. Path steps
+  // carry their path index so the review step can remove them.
+  const { rootLinks, steps } = useMemo(() => {
     const root = trail.origin ? trail.origin.links : trail.seeds
-    return dedupeByUrl([...root, ...trail.path])
+    const seen = new Set(root.map((l) => l.url))
+    const steps = trail.path
+      .map((l, i) => ({ link: l, pathIndex: i }))
+      .filter((s) => {
+        if (seen.has(s.link.url)) return false
+        seen.add(s.link.url)
+        return true
+      })
+    return { rootLinks: dedupeByUrl(root), steps }
   }, [trail])
 
+  const links = useMemo(
+    () => dedupeByUrl([...rootLinks, ...steps.map((s) => s.link)]),
+    [rootLinks, steps]
+  )
+
+  // a representative image for the share embed: the first link that has one
+  const embedImage = useMemo(() => links.find((l) => l.image)?.image, [links])
+
+  const published = Boolean(trail.collection)
+
+  const [step, setStep] = useState<Step>(published ? 'publish' : 'review')
   const [title, setTitle] = useState(trail.title)
   const [description, setDescription] = useState(trail.description)
-  // pairing: up to two selected urls + a note
-  const [picked, setPicked] = useState<string[]>(trail.highlight?.urls ?? [])
-  const [note, setNote] = useState(trail.highlight?.note ?? '')
   const [shareUrl, setShareUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  // editable Bluesky post text, shown live in the preview before posting
+  const [postText, setPostText] = useState('')
 
-  const togglePick = (url: string) =>
-    setPicked((prev) => {
-      if (prev.includes(url)) return prev.filter((u) => u !== url)
-      if (prev.length >= 2) return [prev[1], url] // keep the most recent two
-      return [...prev, url]
-    })
-
-  const published = Boolean(trail.collection) || Boolean(shareUrl)
-
-  const buildHighlight = (): TrailHighlight | undefined =>
-    picked.length === 2 && note.trim()
-      ? { urls: [picked[0], picked[1]], note: note.trim() }
-      : undefined
+  const isLive = published || Boolean(shareUrl)
 
   const handlePublish = async () => {
-    const url = await onPublish({ title, description, highlight: buildHighlight() })
-    if (url) setShareUrl(url.startsWith('http') ? url : `${location.origin}${url}`)
+    const url = await onPublish({ title, description })
+    if (url) {
+      setShareUrl(url.startsWith('http') ? url : `${location.origin}${url}`)
+      // seed the share text from the published title
+      setPostText(`I walked a trail on Forager${title ? `: “${title}”` : ''} 🌿`)
+    }
   }
 
   const fullShareUrl = shareUrl ?? (trail.collection ? `${location.origin}${trail.collection.url}` : null)
@@ -80,7 +93,11 @@ export function FinishTrail({
     )
   }
 
-  const bskyText = `I walked a trail on Forager${title ? `: “${title}”` : ''} 🌿`
+  const heading = isLive
+    ? { title: 'Your trail is live ✦', sub: 'Published to Semble. Post it to Bluesky below — here’s how it’ll look.' }
+    : step === 'review'
+      ? { title: 'Review your trail', sub: 'Scroll back through where you wandered and see who curated these links.' }
+      : { title: 'Name & publish', sub: 'Give your trail a title and a few words, then publish it to Semble and share it.' }
 
   return (
     <div className={styles.screen}>
@@ -89,85 +106,53 @@ export function FinishTrail({
           ← Back to the walk
         </button>
         <Bear kind="forage" size={54} />
-        <h1 className={styles.title}>
-          {published ? 'Your trail is live ✦' : 'Finish your trail'}
-        </h1>
-        <p className={styles.sub}>
-          {published
-            ? 'Published to Semble as a collection. Share it so others can wander from it.'
-            : 'A look back at where you wandered — name it, add a reflection, then publish.'}
-        </p>
+        <h1 className={styles.title}>{heading.title}</h1>
+        <p className={styles.sub}>{heading.sub}</p>
+        {!isLive && <Steps current={step} />}
       </header>
 
-      <div className={styles.columns}>
-        {/* the walk as a vertical list */}
-        <section className={styles.walk}>
-          <div className={styles.sectionLabel}>The trail · {links.length} links</div>
-          <div className={styles.list}>
-            {links.map((l, i) => (
-              <PickableCard
-                key={l.url}
-                link={l}
-                index={i + 1}
-                selectable={!published}
-                selected={picked.includes(l.url)}
-                pairIndex={picked.indexOf(l.url)}
-                onToggle={() => togglePick(l.url)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* pairing reflection + publish/share form */}
-        <section className={styles.side}>
-          {!published && (
-            <div className={styles.pairing}>
-              <div className={styles.sectionLabel}>Pairing · optional</div>
-              <p className={styles.pairPrompt}>
-                Which two links had the most unlikely connection — or stood out most? Pick two from
-                the trail, then say a word about why.
-              </p>
-              <div className={styles.pickedRow}>
-                {[0, 1].map((slot) => {
-                  const url = picked[slot]
-                  const link = url ? links.find((l) => l.url === url) : undefined
-                  return (
-                    <div key={slot} className={`${styles.slot} ${link ? styles.slotFull : ''}`}>
-                      {link ? (
-                        <>
-                          <Thumb url={link.url} image={link.image} size={26} radius={7} />
-                          <span className={styles.slotTitle}>{link.title}</span>
-                        </>
-                      ) : (
-                        <span className={styles.slotEmpty}>Pick link {slot + 1}</span>
-                      )}
-                    </div>
-                  )
-                })}
+      <div className={styles.flow}>
+        {/* ---- Step 1: review — trail + curators ---- */}
+        {!isLive && step === 'review' && (
+          <>
+            <section className={styles.panel}>
+              <div className={styles.sectionLabel}>The trail · {links.length} links</div>
+              <div className={styles.list}>
+                {rootLinks.map((l, i) => (
+                  <ReviewCard key={l.url} link={l} index={i + 1} />
+                ))}
+                {steps.map((s, i) => (
+                  <ReviewCard
+                    key={s.link.url}
+                    link={s.link}
+                    index={rootLinks.length + i + 1}
+                    onRemove={() => onRemoveStep(s.pathIndex)}
+                  />
+                ))}
               </div>
-              <textarea
-                className={styles.noteInput}
-                rows={3}
-                placeholder="What connects them? What stood out?"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                disabled={picked.length < 2}
-              />
-            </div>
-          )}
+            </section>
 
-          {published && trail.highlight && <HighlightNote links={links} highlight={trail.highlight} />}
+            <section className={styles.panel}>
+              <div className={styles.sectionLabel}>Curated by these people</div>
+              <Curators urls={links.map((l) => l.url)} />
+            </section>
 
-          <Curators urls={links.map((l) => l.url)} />
+            <button className={styles.next} onClick={() => setStep('publish')}>
+              Approve & continue →
+            </button>
+          </>
+        )}
 
-          {!published ? (
+        {/* ---- Step 2: publish ---- */}
+        {!isLive && step === 'publish' && (
+          <section className={styles.panel}>
             <div className={styles.form}>
-              <div className={styles.sectionLabel}>Name your trail</div>
               <label className={styles.fieldLabel}>Title</label>
               <input
                 className={styles.input}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                autoFocus
               />
               <label className={styles.fieldLabel}>Description</label>
               <textarea
@@ -177,23 +162,50 @@ export function FinishTrail({
                 onChange={(e) => setDescription(e.target.value)}
               />
               {error && <p className={styles.error}>{error}</p>}
-              <button
-                className={styles.publish}
-                disabled={pending || !title.trim()}
-                onClick={handlePublish}
-              >
-                {pending ? 'Publishing…' : profile ? '✦ Publish trail to Semble' : '✦ Sign in & publish'}
-              </button>
+              <div className={styles.navRow}>
+                <button className={styles.secondary} onClick={() => setStep('review')}>
+                  ← Back
+                </button>
+                <button
+                  className={styles.publish}
+                  disabled={pending || !title.trim()}
+                  onClick={handlePublish}
+                >
+                  {pending ? 'Publishing…' : profile ? '✦ Publish to Semble' : '✦ Sign in & publish'}
+                </button>
+              </div>
             </div>
-          ) : (
+          </section>
+        )}
+
+        {/* ---- Live: share to Bluesky with a live post preview ---- */}
+        {isLive && (
+          <section className={styles.panel}>
+            <div className={styles.sectionLabel}>Share to Bluesky</div>
+            <textarea
+              className={styles.textarea}
+              rows={2}
+              placeholder="Say something about your trail…"
+              value={postText}
+              onChange={(e) => setPostText(e.target.value)}
+            />
+            <div className={styles.previewLabel}>Preview</div>
+            <BlueskyPreview
+              profile={profile}
+              text={postText}
+              title={title}
+              description={description}
+              url={fullShareUrl}
+              image={embedImage}
+            />
             <div className={styles.shareBox}>
               <a
                 className={styles.bsky}
-                href={fullShareUrl ? blueskyShareUrl(bskyText, fullShareUrl) : '#'}
+                href={fullShareUrl ? blueskyShareUrl(postText, fullShareUrl) : '#'}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                🦋 Share to Bluesky
+                🦋 Post to Bluesky
               </a>
               <button className={styles.copy} onClick={copyLink}>
                 {copied ? '✓ Link copied' : '⇗ Copy share link'}
@@ -202,82 +214,144 @@ export function FinishTrail({
                 Done
               </button>
             </div>
-          )}
-        </section>
+          </section>
+        )}
       </div>
     </div>
   )
 }
 
-function PickableCard({
+/** The two flow steps as a small progress indicator. */
+function Steps({ current }: { current: Step }) {
+  const order: Step[] = ['review', 'publish']
+  const labels: Record<Step, string> = { review: 'Review', publish: 'Publish & share' }
+  return (
+    <ol className={styles.steps}>
+      {order.map((s, i) => {
+        const state =
+          s === current ? styles.stepOn : order.indexOf(current) > i ? styles.stepDone : ''
+        return (
+          <li key={s} className={`${styles.stepPip} ${state}`}>
+            <span className={styles.stepPipNum}>{i + 1}</span>
+            {labels[s]}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+function ReviewCard({
   link,
   index,
-  selectable,
-  selected,
-  pairIndex,
-  onToggle,
+  onRemove,
 }: {
   link: Link
   index: number
-  selectable: boolean
-  selected: boolean
-  pairIndex: number
-  onToggle: () => void
+  onRemove?: () => void
 }) {
   return (
     <div className={styles.step}>
       <span className={styles.stepNum}>{index}</span>
-      <div
-        className={`${styles.card} ${selected ? styles.cardSelected : ''} ${
-          selectable ? styles.cardSelectable : ''
-        }`}
-        onClick={selectable ? onToggle : undefined}
-        role={selectable ? 'button' : undefined}
-        tabIndex={selectable ? 0 : undefined}
-        onKeyDown={selectable ? (e) => { if (e.key === 'Enter') onToggle() } : undefined}
-      >
-        {selected && <span className={styles.pairBadge}>{pairIndex + 1}</span>}
-        <LinkCard link={link} />
+      <div className={styles.card}>
+        <LinkCard link={link} onRemove={onRemove} />
       </div>
     </div>
   )
 }
 
 /**
- * "Meet the people curating these links" — everyone who has saved any of the
- * trail's links to their Semble library, deduplicated across the whole trail.
+ * A faithful preview of the Bluesky post: the author, the composed text, and an
+ * external-link embed card (title, description, domain, optional thumbnail) —
+ * the same embed Bluesky renders for the shared trail URL.
+ */
+function BlueskyPreview({
+  profile,
+  text,
+  title,
+  description,
+  url,
+  image,
+}: {
+  profile: Profile | null
+  text: string
+  title: string
+  description: string
+  url: string | null
+  image?: string
+}) {
+  let domain = 'semble.so'
+  try {
+    if (url) domain = new URL(url).hostname
+  } catch {
+    /* keep default */
+  }
+  return (
+    <div className={styles.bskyPreview}>
+      <div className={styles.bskyHead}>
+        {profile?.avatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className={styles.bskyAvatar} src={profile.avatar} alt="" />
+        ) : (
+          <span className={styles.bskyAvatar}>
+            <Bear kind="head" palette="sage" size={36} />
+          </span>
+        )}
+        <div className={styles.bskyName}>
+          <span className={styles.bskyDisplay}>{profile?.displayName ?? 'You'}</span>
+          <span className={styles.bskyHandle}>@{profile?.handle ?? 'you.bsky.social'}</span>
+        </div>
+      </div>
+      {text.trim() && <p className={styles.bskyText}>{text}</p>}
+      <div className={styles.bskyEmbed}>
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img className={styles.bskyEmbedImg} src={image} alt="" />
+        ) : (
+          <div className={styles.bskyEmbedThumb}>
+            <Bear kind="forage" size={40} />
+          </div>
+        )}
+        <div className={styles.bskyEmbedBody}>
+          <span className={styles.bskyEmbedTitle}>{title || 'A trail on Forager'}</span>
+          {description.trim() && <span className={styles.bskyEmbedDesc}>{description}</span>}
+          <span className={styles.bskyEmbedDomain}>{domain}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * "The links in this trail have been curated by these people" — everyone who
+ * has saved any of the trail's links to their Semble library, deduplicated.
  */
 function Curators({ urls }: { urls: string[] }) {
   const curators = useCurators(urls)
 
-  if (curators !== null && curators.length === 0) return null
+  if (curators === null) return <p className={styles.curatorsLoading}>Gathering curators…</p>
+  if (curators.length === 0)
+    return <p className={styles.curatorsLoading}>No curators found for these links yet.</p>
 
   return (
-    <div className={styles.curators}>
-      <div className={styles.sectionLabel}>Meet the people curating these links</div>
-      {curators === null ? (
-        <p className={styles.curatorsLoading}>Gathering curators…</p>
-      ) : (
-        <ul className={styles.curatorList}>
-          {curators.map((c) => (
-            <li key={c.handle} className={styles.curator}>
-              <a
-                className={styles.curatorLink}
-                href={`https://semble.so/${c.handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <CuratorAvatar curator={c} />
-                <span className={styles.curatorText}>
-                  <span className={styles.curatorName}>{c.displayName}</span>
-                  <span className={styles.curatorHandle}>@{c.handle}</span>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul className={styles.curatorList}>
+      {curators.map((c) => (
+        <li key={c.handle} className={styles.curator}>
+          <a
+            className={styles.curatorLink}
+            href={`https://semble.so/profile/${c.handle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <CuratorAvatar curator={c} />
+            <span className={styles.curatorText}>
+              <span className={styles.curatorName}>{c.displayName}</span>
+              <span className={styles.curatorHandle}>@{c.handle}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -293,20 +367,3 @@ function CuratorAvatar({ curator }: { curator: Curator }) {
   )
 }
 
-function HighlightNote({ links, highlight }: { links: Link[]; highlight: TrailHighlight }) {
-  const paired = highlight.urls.map((u) => links.find((l) => l.url === u)).filter(Boolean) as Link[]
-  return (
-    <div className={styles.highlightNote}>
-      <div className={styles.sectionLabel}>The pairing you noted</div>
-      <div className={styles.pickedRow}>
-        {paired.map((l) => (
-          <div key={l.url} className={`${styles.slot} ${styles.slotFull}`}>
-            <Thumb url={l.url} image={l.image} size={26} radius={7} />
-            <span className={styles.slotTitle}>{l.title}</span>
-          </div>
-        ))}
-      </div>
-      <p className={styles.highlightText}>“{highlight.note}”</p>
-    </div>
-  )
-}

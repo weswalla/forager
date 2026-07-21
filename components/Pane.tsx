@@ -120,6 +120,7 @@ export function ResultsPane({
         )}
       </div>
       <div className={styles.body}>
+        <div className={styles.startHint}>Click any link to start exploring →</div>
         <RelatedList data={data} error={error} retry={retry} exclude={exclude} onOpen={onOpen} />
       </div>
     </section>

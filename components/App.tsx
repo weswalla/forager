@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Link, Profile } from '@/lib/types'
+import { SEED_MAX } from '@/lib/types'
 import { useApp } from '@/lib/useApp'
 import { useAuth } from '@/lib/useAuth'
 import { TopBar } from '@/components/TopBar'
 import { TrailsDrawer } from '@/components/TrailsDrawer'
 import { Home } from '@/components/Home'
 import { Panes } from '@/components/Panes'
-import { Footer } from '@/components/Footer'
 import { SignInModal } from '@/components/SignIn'
 import { SaveTrailModal } from '@/components/SaveTrailModal'
 import { FinishTrail } from '@/components/FinishTrail'
@@ -49,11 +49,13 @@ export function App({ route }: { route?: Route }) {
   // otherwise plant a new one so an in-progress walk isn't disturbed.
   const ensureHome = useCallback(() => {
     const t = app.trail
-    // show the calm prompt immediately; if the current trail is already walked
-    // (or shared/saved), plant a fresh one so its walk isn't disturbed — the
-    // prompt view is identical either way, so there's no visible flash.
+    // show the calm prompt immediately; plant a fresh trail unless the current
+    // one is already pristine (unwalked, unsaved, un-shared, and still carrying
+    // its full set of default seeds — i.e. no query/random preview planted yet).
+    // The prompt view is identical either way, so there's no visible flash.
     app.goHome()
-    if (!t || t.path.length || t.collection || t.origin) app.newTrail()
+    const pristine = t && !t.path.length && !t.collection && !t.origin && t.seeds.length === SEED_MAX
+    if (!pristine) app.newTrail()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [app.trail?.id, app.goHome, app.newTrail])
 
@@ -177,32 +179,26 @@ export function App({ route }: { route?: Route }) {
     }
   }
 
-  // finish flow: publish the current trail (signing in first if needed), storing
-  // the optional pairing reflection; returns the shareable URL for Bluesky/copy.
+  // finish flow: publish the current trail (signing in first if needed);
+  // returns the shareable URL for the Bluesky share preview / copy.
   const handleFinishPublish = async (info: {
     title: string
     description: string
-    highlight: Parameters<typeof app.setHighlight>[1]
   }): Promise<string | null> => {
     if (!trail) return null
     const id = trail.id
     if (trail.collection) return trail.collection.url // already published
     setSavePending(true)
     setSaveError(null)
-    app.setHighlight(id, info.highlight)
     try {
       const profile = auth.profile ?? (await new Promise<Profile | null>((resolve) => {
         afterSignIn.current = (p) => resolve(p)
         setAuthOpen(true)
       }))
       if (!profile) return null // user closed the sign-in modal
-      // carry the pairing reflection into the published description
-      const description = info.highlight
-        ? `${info.description}${info.description.trim() ? '\n\n' : ''}✦ Pairing — ${info.highlight.note}`
-        : info.description
       const ref = await app.saveAsCollection(id, profile, {
         title: info.title,
-        description,
+        description: info.description,
       })
       show(`“${info.title}” published to Semble ✦`)
       return ref.url
@@ -291,8 +287,10 @@ export function App({ route }: { route?: Route }) {
           ) : trail && app.state.phase === 'home' ? (
             <Home
               origin={trail.origin}
+              seeds={trail.seeds}
               onSeedQuery={app.seedWithQuery}
               onSeedRandom={app.seedRandom}
+              onStartWalk={app.startWalk}
               onWalkFrom={(link) => {
                 app.open(link)
                 app.enterWalk()
@@ -311,12 +309,6 @@ export function App({ route }: { route?: Route }) {
                   ✓ Finish trail
                 </button>
               )}
-              <Footer
-                trail={trail}
-                activeStep={app.state.activeStep}
-                onNavigate={app.focus}
-                onRemoveStep={app.removeStep}
-              />
             </>
           ) : (
             <div className={styles.loading}>Gathering seeds…</div>
@@ -355,6 +347,7 @@ export function App({ route }: { route?: Route }) {
           profile={auth.profile}
           pending={savePending}
           error={saveError}
+          onRemoveStep={app.removeStep}
           onPublish={handleFinishPublish}
           onClose={() => { setFinishOpen(false); setSaveError(null) }}
         />

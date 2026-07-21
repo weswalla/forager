@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useReducer, useState } from 'react'
-import type { CollectionRef, Curator, Link, Profile, Related, Trail, TrailCollection, TrailHighlight } from './types'
+import type { CollectionRef, Curator, Link, Profile, Related, Trail, TrailCollection } from './types'
 import { SEED_MAX, SEED_MIN } from './types'
 import { PANE_ROOT, dedupeByUrl, newId, paneOfStep, searchSeedLink, today } from './helpers'
 import { api } from './api'
@@ -26,7 +26,6 @@ type Action =
   | { type: 'SELECT'; id: string }
   | { type: 'RENAME'; id: string; title: string }
   | { type: 'SET_DESC'; id: string; description: string }
-  | { type: 'SET_HIGHLIGHT'; id: string; highlight: TrailHighlight | undefined }
   | { type: 'CYCLE_SEED'; index: number; link: Link } // before start only
   | { type: 'SET_SEEDS'; seeds: Link[] } // refresh the whole seed list at once
   | { type: 'REMOVE_SEED'; index: number } // keep ≥ 1
@@ -163,11 +162,6 @@ function reducer(state: AppState, action: Action): AppState {
     case 'SET_DESC':
       return updateTrail(state, action.id, (t) =>
         t.collection ? t : { ...t, description: action.description.trim() }
-      )
-
-    case 'SET_HIGHLIGHT':
-      return updateTrail(state, action.id, (t) =>
-        t.collection ? t : { ...t, highlight: action.highlight }
       )
 
     case 'CYCLE_SEED': {
@@ -343,10 +337,11 @@ export function useApp() {
   )
 
   /**
-   * From the home landing: seed with a single fresh random link and begin
-   * walking. A new random link is drawn on every call (nothing is "kept"), so
-   * tapping the button repeatedly always sets off from a different link.
-   * Mirrors seedWithQuery: reuse a fresh landing trail, else diverge.
+   * From the home landing: draw a single fresh random link and set it as the
+   * seed, but STAY on the home page so the user can preview it, cycle for a
+   * different one, then choose to start. A new link is drawn on every call, so
+   * tapping the button repeatedly always previews a different starting point.
+   * Reuses a fresh landing trail, else diverges into a new one.
    */
   const seedRandom = useCallback(
     async () => {
@@ -357,12 +352,16 @@ export function useApp() {
       } else {
         dispatch({ type: 'NEW_TRAIL', seeds: [link] })
       }
-      dispatch({ type: 'START' })
-      dispatch({ type: 'ENTER_WALK' })
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [trail?.origin, trail?.started, trail?.id, seedUrls.join('|')]
   )
+
+  /** Lock the current seed(s) and begin the walk (from the home preview). */
+  const startWalk = useCallback(() => {
+    dispatch({ type: 'START' })
+    dispatch({ type: 'ENTER_WALK' })
+  }, [])
 
   const goHome = useCallback(() => dispatch({ type: 'GO_HOME' }), [])
   const enterWalk = useCallback(() => dispatch({ type: 'ENTER_WALK' }), [])
@@ -426,6 +425,7 @@ export function useApp() {
     newTrail,
     seedWithQuery,
     seedRandom,
+    startWalk,
     goHome,
     enterWalk,
     openTrail,
@@ -435,8 +435,6 @@ export function useApp() {
     select: (id: string) => dispatch({ type: 'SELECT', id }),
     rename: (id: string, title: string) => dispatch({ type: 'RENAME', id, title }),
     setDescription: (id: string, description: string) => dispatch({ type: 'SET_DESC', id, description }),
-    setHighlight: (id: string, highlight: TrailHighlight | undefined) =>
-      dispatch({ type: 'SET_HIGHLIGHT', id, highlight }),
     removeSeed: (index: number) => dispatch({ type: 'REMOVE_SEED', index }),
     start: () => dispatch({ type: 'START' }),
     open: (link: Link) => dispatch({ type: 'OPEN', link }),

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import type { Link, TrailOrigin } from '@/lib/types'
+import { searchQueryOf } from '@/lib/helpers'
 import { LinkCard } from './LinkCard'
 import styles from './Home.module.css'
 
@@ -47,13 +48,17 @@ function windowAt(offset: number): string[] {
 
 export function Home({
   origin,
+  seeds,
   onSeedQuery,
   onSeedRandom,
+  onStartWalk,
   onWalkFrom,
 }: {
   origin?: TrailOrigin
+  seeds: Link[]
   onSeedQuery: (query: string) => void
   onSeedRandom: () => void
+  onStartWalk: () => void
   onWalkFrom?: (link: Link) => void
 }) {
   return (
@@ -61,8 +66,10 @@ export function Home({
       <div className={styles.inner}>
         <PromptView
           origin={origin}
+          seeds={seeds}
           onSeedQuery={onSeedQuery}
           onSeedRandom={onSeedRandom}
+          onStartWalk={onStartWalk}
           onWalkFrom={onWalkFrom}
         />
       </div>
@@ -74,13 +81,17 @@ export function Home({
 
 function PromptView({
   origin,
+  seeds,
   onSeedQuery,
   onSeedRandom,
+  onStartWalk,
   onWalkFrom,
 }: {
   origin?: TrailOrigin
+  seeds: Link[]
   onSeedQuery: (query: string) => void
   onSeedRandom: () => void
+  onStartWalk: () => void
   onWalkFrom?: (link: Link) => void
 }) {
   const [text, setText] = useState('')
@@ -108,6 +119,10 @@ function PromptView({
   }
 
   const query = [text.trim(), ...picked].filter(Boolean).join(' ')
+
+  // A random seed the user planted for preview: a single, non-search seed. (A
+  // fresh trail carries 3 default seeds; a question carries one search seed.)
+  const randomSeed = seeds.length === 1 && !searchQueryOf(seeds[0].url) ? seeds[0] : null
 
   // A shared trail's landing is just its links — click one to start wandering.
   if (origin) return <SharedRoot origin={origin} onWalkFrom={onWalkFrom} />
@@ -159,12 +174,29 @@ function PromptView({
       </div>
 
       <section className={styles.random}>
-        <button className={styles.secondary} onClick={onSeedRandom}>
-          🍃 Seed your trail with a random link
-        </button>
-        <p className={styles.hint}>
-          One link plucked from the network — tap again for a different starting point.
-        </p>
+        {randomSeed ? (
+          <div className={styles.preview}>
+            <LinkCard link={randomSeed} onClick={onStartWalk} />
+            <div className={styles.previewActions}>
+              <button className={styles.reroll} onClick={onSeedRandom}>
+                ⟳ Try another
+              </button>
+              <button className={styles.primary} onClick={onStartWalk}>
+                Start wandering →
+              </button>
+            </div>
+            <p className={styles.hint}>Start from this link, or reroll for a different one.</p>
+          </div>
+        ) : (
+          <>
+            <button className={styles.secondary} onClick={onSeedRandom}>
+              🍃 Seed your trail with a random link
+            </button>
+            <p className={styles.hint}>
+              One link plucked from the network — tap again for a different starting point.
+            </p>
+          </>
+        )}
       </section>
     </>
   )

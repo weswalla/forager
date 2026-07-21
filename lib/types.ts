@@ -23,13 +23,6 @@ export interface Trail {
   createdAt: string
   collection?: CollectionRef // set once the trail is saved to Semble; enables sharing
   origin?: TrailOrigin // present when this trail was opened from a shared link
-  highlight?: TrailHighlight // an optional pairing reflection captured when finishing
-}
-
-/** The "pairing" reflection: two links that stood out, and why. */
-export interface TrailHighlight {
-  urls: [string, string] // the two paired link urls
-  note: string
 }
 
 /** Where a trail lives on Semble once saved as a collection. */

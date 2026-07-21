@@ -98,11 +98,18 @@
   display: grid;
   place-items: center;
   transition: 0.16s;
-  opacity: 0;
 }
 
-.card:hover .cardX {
-  opacity: 1;
+/* On hover-capable devices the × fades in on hover; on touch it stays visible
+   (there's no hover), so remove-on-mobile actually works. */
+@media (hover: hover) {
+  .cardX {
+    opacity: 0;
+  }
+
+  .card:hover .cardX {
+    opacity: 1;
+  }
 }
 
 .cardX:hover {
@@ -141,6 +148,19 @@
   gap: 5px;
   font-size: 11px;
   color: var(--ink-faint);
+  text-decoration: none;
+}
+
+/* source domain in list/finish cards — clickable to the original link */
+.sourceLink {
+  color: var(--ink-faint);
+  text-decoration: none;
+}
+
+.sourceLink:hover,
+.heroDomain:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 /* seed card */

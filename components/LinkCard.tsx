@@ -60,10 +60,17 @@ export function LinkCard({
               {REL_META[rel].icon} {REL_META[rel].label}
             </span>
           )}
-          <span className={variant === 'header' ? styles.heroDomain : undefined}>
-            {variant === 'header' ? '🔗 ' : ''}
+          {/* the source domain links out to the original url */}
+          <a
+            className={variant === 'header' ? styles.heroDomain : styles.sourceLink}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Open ${link.domain}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {link.domain}
-          </span>
+          </a>
         </div>
       </div>
 

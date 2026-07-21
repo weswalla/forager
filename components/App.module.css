@@ -18,7 +18,7 @@
   display: flex;
   flex-direction: column;
   /* positioning context for the floating Finish button, so it centers on the
-     panes area — and shifts with the footer — when the side drawer opens */
+     panes area when the side drawer opens */
   position: relative;
 }
 
@@ -31,12 +31,12 @@
   font-size: 14px;
 }
 
-/* "Finish trail" — a distinct floating action, centered just above the path bar */
+/* "Finish trail" — a distinct floating action, centered at the bottom of the panes */
 .finishBtn {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 52px;
+  bottom: 18px;
   z-index: 16;
   border: none;
   cursor: pointer;
@@ -57,7 +57,7 @@
 
 @media (max-width: 720px) {
   .finishBtn {
-    bottom: 48px;
+    bottom: 16px;
   }
 }
 

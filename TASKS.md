@@ -26,3 +26,15 @@
 - [x] Expanded trail view link card border outline covers too much when clicked (the border covered the number on the left)
 - [x] Meet the people curating these links (list of users who curated these links) - on the finish trail window, show a list of all the users that curated these links (for each link in the trail, get the list of users who saved it to their library, deduplicate the list
 - [x] Change the seed links to be just one - it picks one randomly. And it should pick a random one each time that button on the home prompt page is clicked (right now it keeps whatever was last selected)
+- [x] Simplify final page - simple “review” trail - scroll through, easy edit (remove etc) approve goes to the “the links in this trail have been curated by these people” or something - then name / describe + publish + share (should be a smooth, easy flow)
+- [x] Scrolling panes on desktop is not smooth (sticky to the panes, don't want that, just smooth scrolling on desktop)
+- [x] remove the bottom footer (and the expandable trail view) - we don't need these for now
+- [x] the prompt page random seed should still show the seed page where we can cycle through the random link, before starting the trail
+- [x] remove the link emoji from the pane header
+- [x] in link cards, make the "source" field clickable to the original link
+- [x] seed pane should say something near the top like "click any link to start exploring"
+- [x] links to profiles should be `https://semble.so/profile/{handle}`
+- [x] Review trail remove link needs to work on mobile (x visible)
+- [x] Combine trail review with “meet the people curating these links” into one section, then the final publish page (publish page should be save trail to semble & then post the share link to bsky
+- [x] Remove the pairing part in the finish path - no need for it now
+- [x] after saving trail to semble, the share to bluesky will happen right from the page, showing a preview of what the post looks like with the link embed

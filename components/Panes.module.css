@@ -12,10 +12,10 @@
   gap: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  scroll-behavior: smooth;
-  scroll-snap-type: x proximity;
+  /* desktop: free, smooth horizontal scrolling — no snap stickiness. The phone
+     gallery re-enables mandatory snap below. */
   padding: 16px;
-  padding-bottom: 8px;
+  padding-bottom: 16px;
 }
 
 .panes::-webkit-scrollbar {
